@@ -7,6 +7,7 @@ export function Intro() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +31,7 @@ export function Intro() {
         setTimeout(() => {
           setIsFormOpen(false);
           setIsSubmitted(false);
-          setFormData({ name: "", email: "", message: "" });
+          setFormData({ name: "", email: "", phone: "", message: "" });
         }, 2000);
       }
     } catch (error) {
@@ -131,6 +132,25 @@ export function Intro() {
                     }
                     className="w-full px-3 py-2.5 border border-neutral-200 dark:border-slate-700 rounded-lg bg-neutral-50 dark:bg-slate-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all"
                     placeholder="you@company.com"
+                    suppressHydrationWarning
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5"
+                  >
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 border border-neutral-200 dark:border-slate-700 rounded-lg bg-neutral-50 dark:bg-slate-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all"
+                    placeholder="+44 7700 900000"
                     suppressHydrationWarning
                   />
                 </div>
