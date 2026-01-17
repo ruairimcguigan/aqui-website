@@ -8,6 +8,7 @@ export function Intro() {
     name: "",
     email: "",
     phone: "",
+    website: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +32,7 @@ export function Intro() {
         setTimeout(() => {
           setIsFormOpen(false);
           setIsSubmitted(false);
-          setFormData({ name: "", email: "", phone: "", message: "" });
+          setFormData({ name: "", email: "", phone: "", website: "", message: "" });
         }, 2000);
       }
     } catch (error) {
@@ -145,12 +146,32 @@ export function Intro() {
                   <input
                     type="tel"
                     id="phone"
+                    required
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     className="w-full px-3 py-2.5 border border-neutral-200 dark:border-slate-700 rounded-lg bg-neutral-50 dark:bg-slate-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all"
                     placeholder="+44 7700 900000"
+                    suppressHydrationWarning
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="website"
+                    className="block text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-1.5"
+                  >
+                    Website <span className="text-neutral-400 dark:text-neutral-500">(optional)</span>
+                  </label>
+                  <input
+                    type="url"
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) =>
+                      setFormData({ ...formData, website: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 border border-neutral-200 dark:border-slate-700 rounded-lg bg-neutral-50 dark:bg-slate-800 text-neutral-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all"
+                    placeholder="https://yourcompany.com"
                     suppressHydrationWarning
                   />
                 </div>
