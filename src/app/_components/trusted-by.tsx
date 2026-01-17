@@ -1,6 +1,12 @@
 import Image from "next/image";
 
-const clients = [
+type Client = {
+  name: string;
+  logo: string;
+  size?: "small" | "large";
+};
+
+const clients: Client[] = [
   { name: "Deliveroo", logo: "/assets/clients/deliveroo.png" },
   { name: "Santander Bank", logo: "/assets/clients/santander.png" },
   { name: "Deloitte Digital", logo: "/assets/clients/deloittedigital.webp" },
@@ -13,7 +19,7 @@ const clients = [
     size: "large",
   },
   { name: "Allstate Insurance", logo: "/assets/clients/allstate.png" },
-] as const;
+];
 
 export function TrustedBy() {
   return (
