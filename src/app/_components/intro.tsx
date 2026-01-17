@@ -15,15 +15,29 @@ export function Intro() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate form submission - replace with actual submission logic
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsFormOpen(false);
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", message: "" });
-    }, 2000);
+
+    try {
+      const response = await fetch("https://formspree.io/f/mzdddwrw", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        setTimeout(() => {
+          setIsFormOpen(false);
+          setIsSubmitted(false);
+          setFormData({ name: "", email: "", message: "" });
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
