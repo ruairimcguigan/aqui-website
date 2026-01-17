@@ -11,10 +11,29 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aqui.io | Digital Engineering by Aquidigital Ltd.",
-  description:
-    "Specialized web and mobile engineering. Native performance. Scalable architecture.",
+  title: "Aqui | Digital Engineering",
+  description: "Premium web and mobile software consultancy by Aquidigital Ltd.",
+  metadataBase: new URL("https://aqui-website.vercel.app"),
   openGraph: {
+    title: "Aqui | Digital Engineering",
+    description:
+      "Premium web and mobile software consultancy by Aquidigital Ltd.",
+    images: [
+      {
+        url: HOME_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: "Aqui Digital Engineering",
+      },
+    ],
+    siteName: "Aqui",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Aqui | Digital Engineering",
+    description:
+      "Premium web and mobile software consultancy by Aquidigital Ltd.",
     images: [HOME_OG_IMAGE_URL],
   },
 };
