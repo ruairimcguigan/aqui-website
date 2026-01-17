@@ -20,6 +20,7 @@ const config: Config = {
         "accent-7": "#333",
         success: "#0070f3",
         cyan: "#79FFE1",
+        "brand-blue": "#2563EB",
       },
       spacing: {
         28: "7rem",
