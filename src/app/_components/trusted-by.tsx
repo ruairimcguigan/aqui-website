@@ -28,7 +28,7 @@ export function TrustedBy() {
           {clients.map((client) => (
             <div
               key={client.name}
-              className="flex items-center justify-center grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+              className="flex items-center justify-center grayscale opacity-60 hover:grayscale-0 hover:opacity-100 dark:grayscale-0 dark:opacity-100 transition-all duration-300"
             >
               <Image
                 src={client.logo}
