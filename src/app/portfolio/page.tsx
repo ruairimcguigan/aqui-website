@@ -8,9 +8,10 @@ export const metadata: Metadata = {
 
 const projects = [
   {
-    title: "Maestro for Sonos",
+    name: "Maestro",
+    suffix: "for Sonos",
     description:
-      "A native iOS and Android app for controlling your Sonos speakers. Explore the site, privacy policy and support pages.",
+      "A fast, local-first controller for Sonos — native across the Mac menu bar, iPhone, iPad, Apple Watch and Android. No account, no cloud, no subscription: it talks straight to your speakers over your own network, with scenes, EQ presets and room grouping always a tap away. Explore the site, privacy policy and support pages.",
     href: "/portfolio/maestro/",
     image: "/portfolio/maestro/assets/maestro-logo-512.png",
   },
@@ -33,23 +34,26 @@ export default function Portfolio() {
           <div className="grid grid-cols-1 md:grid-cols-3 md:gap-x-16 lg:gap-x-20 gap-y-20 mb-20 md:mb-28">
             {projects.map((project) => (
               <a
-                key={project.title}
+                key={project.name}
                 href={project.href}
                 className="group block"
               >
                 <div className="mb-5">
-                  <div className="w-full h-[280px] flex items-center justify-center bg-gradient-to-b from-neutral-100 to-white dark:from-slate-700 dark:to-slate-900 rounded-lg overflow-hidden transition-shadow group-hover:shadow-lg">
+                  <div className="w-full h-[280px] flex items-center justify-center gap-4 px-6 bg-gradient-to-b from-neutral-100 to-white dark:from-slate-700 dark:to-slate-900 rounded-lg overflow-hidden transition-shadow group-hover:shadow-lg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={project.image}
-                      alt={project.title}
-                      className="h-24 w-auto object-contain"
+                      alt=""
+                      className="h-14 w-auto object-contain"
                     />
+                    <span className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white leading-tight">
+                      {project.name}{" "}
+                      <span className="font-medium text-neutral-500 dark:text-neutral-400 whitespace-nowrap">
+                        {project.suffix}
+                      </span>
+                    </span>
                   </div>
                 </div>
-                <h3 className="text-3xl mb-3 leading-snug font-bold tracking-tight text-neutral-900 dark:text-white group-hover:underline underline-offset-4 transition-colors">
-                  {project.title}
-                </h3>
                 <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400">
                   {project.description}
                 </p>
