@@ -1,4 +1,5 @@
 import Container from "@/app/_components/container";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -21,7 +22,13 @@ export default function Portfolio() {
   return (
     <main>
       <Container>
-        <section className="mt-16 mb-20 md:mb-28">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 mt-12 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+        >
+          <span aria-hidden>&larr;</span> Back to home
+        </Link>
+        <section className="mt-6 mb-20 md:mb-28">
           <h1 className="text-5xl md:text-8xl font-bold tracking-tighter leading-tight mb-6">
             Side Projects
           </h1>
