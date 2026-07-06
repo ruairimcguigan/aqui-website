@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Support — Maestro for Sonos</title>
+<meta name="description" content="Help and support for Maestro for Sonos — setup, troubleshooting, and how to get in touch." />
+<script>(function(){ try { var t = localStorage.getItem('maestro-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){} })();</script>
+<style>
+  :root {
+    --bg:#08080A; --bg-2:#0E0E12; --inv:#F5F5F7; --inv-2:#A1A1AC; --line:rgba(255,255,255,0.10);
+    --nav-bg:rgba(8,8,10,0.62); --violet:#7C6CF5; --violet-2:#A99CFF; --maxw:760px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+    --bg:#FAFAF8; --bg-2:#FFFFFF; --inv:#0B0B0D; --inv-2:#5C5C66; --line:rgba(0,0,0,0.10); --nav-bg:rgba(250,250,248,0.72);
+  }}
+  :root[data-theme="light"]{
+    --bg:#FAFAF8; --bg-2:#FFFFFF; --inv:#0B0B0D; --inv-2:#5C5C66; --line:rgba(0,0,0,0.10); --nav-bg:rgba(250,250,248,0.72);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{font-family:var(--font);background:var(--bg);color:var(--inv);line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;}
+  a{color:var(--violet-2);text-decoration:none;} a:hover{text-decoration:underline;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);background:var(--nav-bg);border-bottom:1px solid var(--line);}
+  .nav .wrap{max-width:1120px;display:flex;align-items:center;justify-content:space-between;height:60px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:-0.02em;font-size:18px;color:var(--inv);}
+  .brand .sfx{font-size:12px;color:var(--inv-2);font-weight:500;}
+  .mark{width:26px;height:26px;}
+  .nav-right{display:flex;align-items:center;gap:16px;}
+  .nav-right a{font-size:14px;color:var(--inv-2);} .nav-right a:hover{color:var(--inv);text-decoration:none;}
+  .theme-toggle{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);color:var(--inv);background:none;cursor:pointer;font-size:15px;}
+  main{padding:64px 0 80px;}
+  h1{font-size:clamp(32px,5vw,44px);line-height:1.1;letter-spacing:-0.03em;font-weight:700;}
+  .lead{font-size:18px;color:var(--inv-2);margin-top:20px;}
+  h2{font-size:21px;font-weight:600;letter-spacing:-0.01em;margin:38px 0 10px;}
+  p{color:var(--inv);margin-top:10px;}
+  ul{margin:10px 0 0 22px;} li{margin-top:8px;color:var(--inv);}
+  li b{color:var(--inv);}
+  .contact{margin-top:28px;border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--bg-2);}
+  .contact a{font-weight:600;}
+  footer{border-top:1px solid var(--line);padding:32px 0;color:var(--inv-2);font-size:13.5px;}
+  .disclaimer{max-width:60ch;line-height:1.6;}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><svg class="mark" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0A0A0C"/><g fill="none" stroke="#A99CFF" stroke-width="1.6" stroke-linecap="round"><path d="M20 9 a7 7 0 0 1 0 14" opacity="0.85"/><path d="M22.5 6 a11 11 0 0 1 0 20" opacity="0.5"/></g><path d="M11 7.5 v11.2 a3 3 0 1 1 -2-2.83 V10.2" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9.4" cy="18.4" r="2.4" fill="#FFFFFF"/></svg> Maestro <span class="sfx">for Sonos</span></a>
+    <div class="nav-right">
+      <a href="index.html">← Back to Maestro</a>
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle theme" onclick="toggleTheme()">☀</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <h1>Support</h1>
+    <p class="lead">Maestro is built to just work — but if something's off, here's how to sort it, and how to reach a real person.</p>
+
+    <h2>“No speakers found”</h2>
+    <p>Almost always one of these:</p>
+    <ul>
+      <li><b>Same network.</b> Make sure the device running Maestro is on the <b>same Wi-Fi</b> as your Sonos (not a guest network or a separate band that's isolated).</li>
+      <li><b>Local Network permission.</b> On iPhone, allow Maestro to access the Local Network when prompted (Settings → Maestro → Local Network).</li>
+      <li><b>Local control enabled.</b> If speakers still don't appear, open the <b>Sonos app → Settings → System → Network</b> and check that local control (“Connection Security”) isn't switched off — that setting blocks all third-party controllers, including Maestro.</li>
+      <li><b>Tap Connect / Refresh</b> to search again once the above are sorted.</li>
+    </ul>
+
+    <h2>Album art looks blank</h2>
+    <p>Some sources (certain radio stations) don't provide real cover art and serve a plain placeholder. Maestro shows whatever the source provides; when there's no real artwork, it falls back to a neutral background. Music from streaming services and your library will show full covers.</p>
+
+    <h2>Widgets, Live Activity &amp; Watch</h2>
+    <p>These read what the app is playing, so keep the Maestro app installed and let it discover your speakers. The Apple Watch app relays to your iPhone, so the iPhone app needs to be reachable for the watch to control playback.</p>
+
+    <h2>Feature requests &amp; bugs</h2>
+    <p>Maestro is actively developed and feedback genuinely shapes it. Tell us what's missing or broken — short and specific is perfect.</p>
+
+    <div class="contact">
+      <p style="margin-top:0">Get in touch: <a href="mailto:rmcguigan@aquidigital.co.uk?subject=Maestro%20for%20Sonos%20%E2%80%94%20Support">rmcguigan@aquidigital.co.uk</a></p>
+      <p style="color:var(--inv-2)">We read every message. Including your macOS/iOS version and what you were doing helps us help you faster.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="disclaimer">Works with Sonos. Maestro is not affiliated with, authorised, endorsed by, or in any way officially connected with Sonos, Inc. “Sonos” is a trademark of Sonos, Inc. — used here only to describe compatibility. © 2026 Aquidigital Ltd.</p>
+  </div>
+</footer>
+
+<script>
+  function currentTheme(){ return document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); }
+  function setThemeIcon(){ var b=document.getElementById('themeBtn'); if(b) b.textContent = currentTheme()==='light' ? '☾' : '☀'; }
+  function toggleTheme(){ var n = currentTheme()==='light' ? 'dark' : 'light'; document.documentElement.setAttribute('data-theme', n); try{ localStorage.setItem('maestro-theme', n);}catch(e){} setThemeIcon(); }
+  setThemeIcon();
+</script>
+</body>
+</html>

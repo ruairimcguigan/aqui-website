@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Maestro — Control your Sonos from everywhere you already are</title>
+<link rel="icon" type="image/svg+xml" href="assets/maestro-logo.svg" />
+<link rel="icon" type="image/png" sizes="256x256" href="assets/maestro-logo-256.png" />
+<link rel="apple-touch-icon" href="assets/maestro-logo-512.png" />
+<meta name="description" content="Maestro is a fast, local-first, native controller for Sonos — on your Mac menu bar, iPad, iPhone, Lock Screen, Dynamic Island, Apple Watch and Android. No account. No cloud. No subscription." />
+<script>
+  // Apply saved theme before paint to avoid a flash.
+  (function(){ try { var t = localStorage.getItem('maestro-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){} })();
+</script>
+<style>
+  :root {
+    /* Sonos-inspired monochrome — warm-neutral whites, near-black ink, no accent hue.
+       Light-first: this base is the default; dark theme is the override below. */
+    --bg:        #FFFFFF;
+    --bg-2:      #F7F6F3;
+    --inv:       #111113;
+    --inv-2:     #6B6B70;
+    --line:      rgba(0,0,0,0.11);
+    --card-1:    #FFFFFF;
+    --card-2:    #F4F2EE;
+    --nav-bg:    rgba(255,255,255,0.82);
+    /* "alt band" tokens — the contrasting islands (Scenes, Pricing).
+       Dark islands on the light base; they invert in the dark theme below. */
+    --light:     #111113;
+    --soft:      #17171B;
+    --ink:       #F5F5F4;
+    --ink-2:     #A6A6AC;
+    --line-dk:   rgba(255,255,255,0.12);
+    /* Accent is monochrome: --violet* names kept for compatibility with existing rules.
+       --violet = solid emphasis fill (buttons/toggles) = foreground; --on-fill = text on it. */
+    --violet:    #0A0A0C;
+    --violet-2:  #111113;
+    --violet-dk: #000000;
+    --on-fill:   #FFFFFF;
+    /* faux album-art gradient — fixed charcoal, theme-independent (product-on-black). */
+    --art-1:     #2C2C31;
+    --art-2:     #0B0B0D;
+    --maxw:      1160px;
+    --font: "Helvetica Neue", Helvetica, "Inter", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  }
+
+  /* Dark theme — when the OS prefers dark (and the user hasn't chosen light),
+     or when explicitly toggled. Base flips to near-black; alt-band islands flip to light;
+     the monochrome accent flips to white-on-dark. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0B0B0C; --bg-2:#141416; --inv:#F5F5F4; --inv-2:#9A9A9F;
+      --line:rgba(255,255,255,0.13); --card-1:#161618; --card-2:#0F0F11; --nav-bg:rgba(11,11,12,0.72);
+      --light:#FFFFFF; --soft:#F4F2EE; --ink:#111113; --ink-2:#6B6B70; --line-dk:rgba(0,0,0,0.10);
+      --violet:#FFFFFF; --violet-2:#F5F5F4; --violet-dk:#DADAD8; --on-fill:#0A0A0C;
+      --art-1:#3A3A40; --art-2:#141416;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0B0B0C; --bg-2:#141416; --inv:#F5F5F4; --inv-2:#9A9A9F;
+    --line:rgba(255,255,255,0.13); --card-1:#161618; --card-2:#0F0F11; --nav-bg:rgba(11,11,12,0.72);
+    --light:#FFFFFF; --soft:#F4F2EE; --ink:#111113; --ink-2:#6B6B70; --line-dk:rgba(0,0,0,0.10);
+    --violet:#FFFFFF; --violet-2:#F5F5F4; --violet-dk:#DADAD8; --on-fill:#0A0A0C;
+    --art-1:#3A3A40; --art-2:#141416;
+  }
+  :root[data-theme="light"] {
+    --bg:#FFFFFF; --bg-2:#F7F6F3; --inv:#111113; --inv-2:#6B6B70;
+    --line:rgba(0,0,0,0.11); --card-1:#FFFFFF; --card-2:#F4F2EE; --nav-bg:rgba(255,255,255,0.82);
+    --light:#111113; --soft:#17171B; --ink:#F5F5F4; --ink-2:#A6A6AC; --line-dk:rgba(255,255,255,0.12);
+    --violet:#0A0A0C; --violet-2:#111113; --violet-dk:#000000; --on-fill:#FFFFFF;
+    --art-1:#2C2C31; --art-2:#0B0B0D;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; -webkit-text-size-adjust:100%; }
+  body { font-family:var(--font); background:var(--bg); color:var(--inv); line-height:1.5; -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .3s ease, color .3s ease; }
+  a { color:inherit; text-decoration:none; }
+  .wrap { width:100%; max-width:var(--maxw); margin:0 auto; padding:0 24px; }
+  section { position:relative; }
+
+  /* Nav */
+  .nav { position:sticky; top:0; z-index:50; backdrop-filter:saturate(160%) blur(18px); -webkit-backdrop-filter:saturate(160%) blur(18px); background:var(--nav-bg); border-bottom:1px solid var(--line); }
+  .nav .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; }
+  .brand { display:flex; align-items:baseline; gap:9px; font-weight:600; letter-spacing:-0.02em; font-size:18px; }
+  .brand .mark { align-self:center; }
+  .brand .sfx { font-size:12px; color:var(--inv-2); font-weight:500; letter-spacing:0; }
+  .mark { width:27px; height:27px; display:block; }
+  .mark .tile { fill:var(--inv); }
+  .mark .glyph { stroke:var(--bg); }
+  .mark .glyph .src { fill:var(--bg); stroke:none; }
+  /* inline logo mark prefixed before "Maestro" in headings */
+  .mark.hmark { width:0.82em; height:0.82em; display:inline-block; vertical-align:-0.1em; margin-right:0.18em; }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+  .nav-links { display:flex; align-items:center; gap:30px; }
+  .nav-links a { font-size:14px; color:var(--inv-2); transition:color .2s; }
+  .nav-links a:hover { color:var(--inv); }
+  .nav-links a.btn-primary, .nav-links a.btn-primary:hover { color:var(--on-fill); }
+  .btn { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:600; padding:10px 18px; border-radius:980px; transition:transform .15s ease, opacity .2s, background .2s; }
+  .btn-primary { background:linear-gradient(180deg, var(--violet-2), var(--violet)); color:var(--on-fill); }
+  .btn-primary:hover { transform:translateY(-1px); }
+  .btn-ghost { border:1px solid var(--line); color:var(--inv); }
+  .btn-ghost:hover { background:rgba(127,127,127,0.10); }
+  .nav .btn { padding:8px 16px; }
+  .theme-toggle { display:inline-grid; place-items:center; width:34px; height:34px; border-radius:50%; border:1px solid var(--line); color:var(--inv); background:none; cursor:pointer; font-size:15px; line-height:1; transition:background .2s; }
+  .theme-toggle:hover { background:rgba(127,127,127,0.12); }
+  .nav-toggle { display:none; background:none; border:0; color:var(--inv); cursor:pointer; font-size:18px; }
+
+  /* Hero — full-bleed photo with the headline centred over it. The photo is a fixed
+     light image, so hero text stays dark in BOTH themes (overrides below). */
+  .hero { position:relative; min-height:78vh; display:grid; place-items:center; text-align:center;
+          overflow:hidden; padding:100px 0; }
+  .hero-photo { position:absolute; left:0; right:0; top:-15%; height:130%; z-index:0;
+    background:url("assets/hero.jpg") center/cover no-repeat; will-change:transform; }
+  .hero-veil { position:absolute; inset:0; z-index:1;
+    background:
+      radial-gradient(58% 50% at 50% 46%, rgba(249,246,240,0.88), rgba(249,246,240,0.14) 66%, transparent 82%),
+      linear-gradient(180deg, rgba(247,244,238,0.34), rgba(247,244,238,0.10)); }
+  .hero .wrap { position:relative; z-index:2; }
+  .hero .eyebrow { color:#2a2824; border-color:rgba(0,0,0,0.16); background:rgba(255,255,255,0.55); }
+  .hero h1 { color:#161514; text-shadow:0 1px 26px rgba(255,255,255,0.5); max-width:min(92vw,900px); }
+  .hero .sub { color:#3a3833; }
+  .hero .cta-note { color:#57544e; }
+  .hero .btn-primary { background:#0a0a0a; color:#fff; }
+  .hero .btn-ghost { color:#161514; border-color:rgba(0,0,0,0.30); }
+  .hero .btn-ghost:hover { border-color:#161514; background:rgba(0,0,0,0.05); }
+  /* App mockup, relocated to its own band just below the hero. */
+  .stage-band { padding:clamp(44px,7vw,88px) 0; }
+  .stage-band .stage { margin-top:0; }
+  .eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--violet-2); border:1px solid var(--line); padding:6px 14px; border-radius:980px; background:rgba(127,127,127,0.06); }
+  h1 { font-size:clamp(40px, 6.4vw, 80px); line-height:1.03; letter-spacing:-0.035em; font-weight:700; margin:26px auto 0; max-width:14ch; }
+  h1 .grad { color:inherit; }
+  .sub { font-size:clamp(17px, 2vw, 21px); color:var(--inv-2); max-width:54ch; margin:24px auto 0; line-height:1.55; }
+  .cta-row { display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap; }
+  .cta-note { margin-top:16px; font-size:13px; color:var(--inv-2); }
+
+  /* Hero mock */
+  .stage { position:relative; margin:60px auto 0; max-width:880px; }
+  .menubar { display:flex; align-items:center; justify-content:flex-end; gap:18px; height:30px; padding:0 16px; background:rgba(127,127,127,0.06); border:1px solid var(--line); border-radius:10px; color:var(--inv-2); font-size:12px; }
+  .menubar .mi { opacity:.7; }
+  .menubar .active { color:var(--violet-2); opacity:1; }
+  .card { margin:14px auto 0; max-width:380px; background:linear-gradient(180deg, var(--card-1), var(--card-2)); border:1px solid var(--line); border-radius:20px; box-shadow:0 40px 90px -40px rgba(127,127,127,0.5), 0 20px 50px -30px rgba(0,0,0,0.5); padding:18px; text-align:left; }
+  .card-head { display:flex; align-items:center; justify-content:space-between; font-size:13px; color:var(--inv-2); margin-bottom:14px; }
+  .room { display:flex; align-items:center; gap:12px; padding:10px; border-radius:12px; transition:background .2s; }
+  .room + .room { margin-top:4px; }
+  .room:hover { background:rgba(127,127,127,0.08); }
+  .room .art { width:42px; height:42px; border-radius:9px; background:linear-gradient(135deg, var(--art-1),var(--art-2)); flex:none; display:grid; place-items:center; color:#fff; font-size:16px; }
+  .room .art.alt { background:linear-gradient(135deg,#2a2a33,#15151a); color:#A1A1AC; }
+  .room .meta { flex:1; min-width:0; }
+  .room .meta b { font-size:14px; font-weight:600; display:block; }
+  .room .meta span { font-size:12px; color:var(--inv-2); }
+  .room .play { width:30px; height:30px; border-radius:50%; background:rgba(127,127,127,0.14); display:grid; place-items:center; font-size:12px; color:var(--inv); flex:none; }
+  .room.playing .play { background:var(--violet); color:var(--on-fill); }
+  .room .batt { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--violet-2); flex:none; }
+  .room .batt svg { display:block; }
+
+  /* Strip */
+  .strip { border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:30px 0; }
+  .strip .wrap { display:flex; justify-content:center; gap:48px; flex-wrap:wrap; color:var(--inv-2); font-size:15px; }
+  .strip b { color:var(--inv); font-weight:600; }
+
+  /* Sections */
+  .sec { padding:clamp(72px, 11vw, 130px) 0; }
+  .sec-head { max-width:42ch; }
+  .sec-head.center { margin:0 auto; text-align:center; }
+  .sec-head.wide { max-width:none; text-align:left; }
+  .sec-head.wide .lead { max-width:none; }
+  .sec-head.center.wide { text-align:center; margin:0 auto; }
+  h2 { font-size:clamp(30px, 4.4vw, 50px); line-height:1.08; letter-spacing:-0.03em; font-weight:700; }
+  .lead { color:var(--inv-2); font-size:clamp(16px,1.7vw,19px); margin-top:18px; line-height:1.6; }
+
+  /* Why band (the gap Maestro fills) — two left-aligned columns: problem + fix */
+  /* .why uses the default .sec vertical rhythm (even spacing site-wide) */
+  .why-cols { display:grid; grid-template-columns:1fr; gap:clamp(36px,5vw,60px); margin-bottom:clamp(48px,7vw,80px); }
+  .why-cols .sec-head { max-width:none; text-align:left; margin:0; }
+  .why-cols .lead { max-width:none; }
+
+  /* Features grid */
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:54px; }
+  .feat { background:var(--bg-2); border:1px solid var(--line); border-radius:18px; padding:26px; transition:transform .25s ease, border-color .25s; }
+  .feat:hover { transform:translateY(-4px); border-color:rgba(127,127,127,0.4); }
+  .feat .ic { width:38px; height:38px; color:var(--inv); margin-bottom:20px; }
+  .feat .ic svg { width:100%; height:100%; display:block; }
+  .feat h3 { font-size:18px; font-weight:600; letter-spacing:-0.01em; }
+  .feat p { color:var(--inv-2); font-size:14.5px; margin-top:9px; line-height:1.55; }
+
+  /* Showcase rows — alternating mockup + copy */
+  .show { display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,6vw,80px); align-items:center; }
+  .show + .show { margin-top:clamp(72px,11vw,128px); }
+  .show.flip .show-copy { order:2; }
+  .show.flip .show-art  { order:1; }
+  .show-copy .kicker { font-size:12.5px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--violet-2); }
+  .show-copy h3 { font-size:clamp(24px,3.2vw,34px); line-height:1.12; letter-spacing:-0.025em; font-weight:700; margin-top:14px; }
+  .show-copy p { color:var(--inv-2); font-size:clamp(15px,1.6vw,17px); line-height:1.6; margin-top:16px; }
+  .show-copy .vs { margin-top:18px; font-size:14px; color:var(--inv-2); display:flex; gap:10px; align-items:flex-start; }
+  .show-copy .vs b { color:var(--violet-2); font-weight:600; }
+  .show-copy .vs::before { content:"›"; color:var(--violet-2); font-weight:700; flex:none; }
+  .show-list { list-style:none; margin-top:18px; display:flex; flex-direction:column; gap:10px; }
+  .show-list li { font-size:14.5px; color:var(--inv); display:flex; gap:10px; align-items:flex-start; }
+  .show-list li::before { content:"✓"; color:var(--violet-2); font-weight:700; flex:none; }
+
+  /* Generic mockup frame (reuses the hero card language) */
+  .mock { background:linear-gradient(180deg, var(--card-1), var(--card-2)); border:1px solid var(--line); border-radius:24px; box-shadow:0 40px 90px -50px rgba(127,127,127,0.5), 0 24px 60px -36px rgba(0,0,0,0.55); padding:20px; position:relative; overflow:hidden; }
+  .mock .mock-head { display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--inv-2); margin-bottom:16px; }
+  .mock .mock-head b { color:var(--inv); font-weight:600; }
+
+  /* Now-playing mockup */
+  .np { position:relative; }
+  .np-bg { position:absolute; inset:0; background:linear-gradient(135deg,var(--art-1),var(--art-2)); filter:blur(46px) saturate(140%); opacity:.45; transform:scale(1.25); }
+  .np-inner { position:relative; }
+  .np-art { width:148px; height:148px; margin:6px auto 18px; border-radius:18px; background:linear-gradient(135deg,var(--art-1),var(--art-2)); box-shadow:0 20px 50px -16px rgba(0,0,0,0.6); display:grid; place-items:center; color:#fff; font-size:40px; }
+  .np-title { text-align:center; }
+  .np-title b { display:block; font-size:18px; font-weight:600; letter-spacing:-0.01em; }
+  .np-title span { font-size:13.5px; color:var(--inv-2); }
+  .np-seek { margin:18px 4px 6px; }
+  .np-bar { height:4px; border-radius:999px; background:rgba(127,127,127,0.22); overflow:hidden; }
+  .np-bar i { display:block; height:100%; width:42%; border-radius:999px; background:var(--violet-2); }
+  .np-time { display:flex; justify-content:space-between; font-size:11px; color:var(--inv-2); margin-top:7px; }
+  .np-ctrl { display:flex; align-items:center; justify-content:center; gap:22px; margin-top:14px; color:var(--inv); }
+  .np-ctrl .sm { font-size:13px; color:var(--inv-2); }
+  .np-ctrl .sm.on { color:var(--violet-2); }
+  .np-ctrl .lg { font-size:18px; }
+  .np-ctrl .pp { width:48px; height:48px; border-radius:50%; background:var(--violet); color:var(--on-fill); display:grid; place-items:center; font-size:16px; }
+  .np-vol { display:flex; align-items:center; gap:10px; margin:18px 4px 2px; color:var(--inv-2); font-size:13px; }
+  .np-vol .track { flex:1; height:4px; border-radius:999px; background:rgba(127,127,127,0.22); position:relative; }
+  .np-vol .track i { position:absolute; left:0; top:0; bottom:0; width:56%; border-radius:999px; background:var(--violet-2); }
+  .np-vol .track i::after { content:""; position:absolute; right:-5px; top:50%; transform:translateY(-50%); width:12px; height:12px; border-radius:50%; background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+
+  /* EQ / Sound mockup */
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { font-size:13px; font-weight:600; padding:9px 14px; border-radius:999px; border:1px solid var(--line); color:var(--inv); background:rgba(127,127,127,0.05); }
+  .chip.on { background:var(--violet); border-color:var(--violet); color:var(--on-fill); }
+  .eq-faders { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; height:120px; margin:22px 6px 8px; }
+  .eq-faders .col { flex:1; display:flex; flex-direction:column; align-items:center; height:100%; }
+  .eq-faders .col .bar { flex:1; width:6px; border-radius:999px; background:rgba(127,127,127,0.2); position:relative; }
+  .eq-faders .col .bar i { position:absolute; left:50%; transform:translateX(-50%); width:14px; height:14px; border-radius:50%; background:var(--violet-2); box-shadow:0 2px 6px rgba(0,0,0,0.4); }
+  .eq-faders .col label { font-size:11px; color:var(--inv-2); margin-top:9px; }
+  .eq-toggle { display:flex; align-items:center; justify-content:space-between; font-size:13.5px; padding:11px 2px; border-top:1px solid var(--line); }
+  .eq-toggle span { color:var(--inv-2); }
+  .switch { width:38px; height:22px; border-radius:999px; background:var(--violet); position:relative; flex:none; }
+  .switch::after { content:""; position:absolute; top:2px; right:2px; width:18px; height:18px; border-radius:50%; background:#fff; }
+  .switch.off { background:rgba(127,127,127,0.3); }
+  .switch.off::after { left:2px; right:auto; }
+
+  /* Surfaces lineup (widgets, lock screen, island, watch) */
+  .surfaces { display:grid; grid-template-columns:repeat(12,1fr); gap:18px; margin-top:54px; }
+  .surf { background:var(--bg-2); border:1px solid var(--line); border-radius:22px; padding:20px; display:flex; flex-direction:column; }
+  .surf .label { font-size:18px; font-weight:600; letter-spacing:-0.01em; color:var(--violet-2); }
+  .surf .desc { font-size:14.5px; color:var(--inv-2); margin-top:9px; line-height:1.55; }
+  .surf .vis { margin-top:auto; padding-top:20px; display:flex; align-items:flex-end; justify-content:center; }
+  .surf.col-7 { grid-column:span 7; }
+  .surf.col-5 { grid-column:span 5; }
+  .surf.col-6 { grid-column:span 6; }
+  /* "Also on Mac" callout — emphasised band below the surfaces grid */
+  .mac-note { margin-top:22px; border:1px solid var(--line); border-radius:18px; background:var(--bg-2); padding:24px clamp(22px,3vw,32px); display:flex; gap:clamp(16px,2.5vw,32px); align-items:center; flex-wrap:wrap; }
+  .mac-note .k { font-size:12px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--inv-2); white-space:nowrap; }
+  .mac-note p { flex:1; min-width:min(100%,280px); margin:0; font-size:clamp(17px,1.9vw,20px); line-height:1.5; color:var(--inv-2); letter-spacing:-0.01em; }
+  .mac-note p b { color:var(--inv); font-weight:600; }
+
+  /* iOS Home-screen widget tile */
+  .widget { width:150px; height:150px; border-radius:24px; padding:14px; background:linear-gradient(160deg,#1b1b22,#101015); border:1px solid var(--line); position:relative; overflow:hidden; box-shadow:0 18px 40px -22px rgba(0,0,0,0.6); }
+  .widget .wbg { position:absolute; inset:0; background:linear-gradient(140deg,var(--art-1),var(--art-2)); opacity:.4; filter:blur(26px); transform:scale(1.3); }
+  .widget .wrow { position:relative; display:flex; align-items:center; gap:9px; }
+  .widget .wart { width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,var(--art-1),var(--art-2)); flex:none; overflow:hidden; }
+  .wart svg, .laart svg, .iart svg { width:100%; height:100%; display:block; }
+  .widget .wmeta b { display:block; font-size:12px; color:#fff; font-weight:600; line-height:1.2; }
+  .widget .wmeta span { font-size:10.5px; color:rgba(255,255,255,0.7); }
+  .widget .wctrl { position:relative; margin-top:auto; display:flex; align-items:center; justify-content:space-between; padding-top:14px; color:#fff; font-size:14px; }
+  .widget .wctrl .wpp { width:30px; height:30px; border-radius:50%; background:#fff; color:var(--on-fill); display:grid; place-items:center; font-size:11px; }
+
+  /* Lock screen */
+  .lock { width:200px; border-radius:26px; padding:18px 16px 16px; background:linear-gradient(180deg,#101016,#08080b); border:1px solid var(--line); box-shadow:0 18px 40px -22px rgba(0,0,0,0.6); }
+  .lock .clock { text-align:center; color:#fff; }
+  .lock .clock .t { font-size:36px; font-weight:600; letter-spacing:-0.02em; line-height:1; }
+  .lock .clock .d { font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px; }
+  .lock .la { margin-top:16px; background:rgba(255,255,255,0.08); border-radius:16px; padding:11px; display:flex; align-items:center; gap:10px; }
+  .lock .la .laart { width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,var(--art-1),var(--art-2)); flex:none; }
+  .lock .la .lameta { flex:1; min-width:0; }
+  .lock .la .lameta b { display:block; font-size:12px; color:#fff; font-weight:600; }
+  .lock .la .lameta span { font-size:10px; color:rgba(255,255,255,0.65); }
+  .lock .la .lapp { width:26px; height:26px; border-radius:50%; background:var(--violet); color:var(--on-fill); display:grid; place-items:center; font-size:10px; flex:none; }
+
+  /* Dynamic Island */
+  .island { width:230px; height:42px; border-radius:999px; background:#000; display:flex; align-items:center; gap:10px; padding:0 12px; box-shadow:0 8px 24px -10px rgba(0,0,0,0.7); }
+  .island .iart { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--art-1),var(--art-2)); flex:none; }
+  .island .imeta { flex:1; min-width:0; }
+  .island .imeta b { display:block; font-size:11px; color:#fff; font-weight:600; line-height:1.15; }
+  .island .imeta span { font-size:9.5px; color:rgba(255,255,255,0.6); }
+  .island .iwave { display:flex; align-items:flex-end; gap:2px; height:16px; flex:none; }
+  .island .iwave i { width:3px; border-radius:2px; background:var(--violet-2); }
+  .island .iwave i:nth-child(1){height:6px} .island .iwave i:nth-child(2){height:13px} .island .iwave i:nth-child(3){height:9px} .island .iwave i:nth-child(4){height:16px}
+
+  /* Apple Watch */
+  .watch { width:138px; height:168px; border-radius:38px; background:linear-gradient(180deg,#1a1a20,#08080b); border:1px solid var(--line); padding:16px 14px; box-shadow:0 18px 40px -22px rgba(0,0,0,0.6); position:relative; overflow:hidden; }
+  .watch .wbg2 { position:absolute; inset:0; background:linear-gradient(150deg,var(--art-1),var(--art-2)); opacity:.32; filter:blur(24px); transform:scale(1.4); }
+  .watch .wc { position:relative; }
+  .watch .wtitle b { display:block; font-size:12px; color:#fff; font-weight:600; }
+  .watch .wtitle span { font-size:10px; color:rgba(255,255,255,0.65); }
+  .watch .wbar { height:3px; border-radius:999px; background:rgba(255,255,255,0.2); margin:12px 0; overflow:hidden; }
+  .watch .wbar i { display:block; height:100%; width:48%; background:var(--violet-2); border-radius:999px; }
+  .watch .wt { display:flex; align-items:center; justify-content:center; gap:16px; color:#fff; font-size:13px; }
+  .watch .wt .wpp2 { width:36px; height:36px; border-radius:50%; background:var(--violet); color:var(--on-fill); display:grid; place-items:center; font-size:12px; }
+
+  /* Grouping diagram */
+  .group-diag { display:flex; flex-direction:column; gap:14px; }
+  .group-diag .g-leader { display:flex; align-items:center; gap:12px; background:rgba(127,127,127,0.12); border:1px solid rgba(127,127,127,0.4); border-radius:14px; padding:13px 14px; }
+  .group-diag .g-leader .dot, .group-diag .g-member .dot { width:34px; height:34px; border-radius:9px; flex:none; display:grid; place-items:center; font-size:13px; }
+  .group-diag .g-leader .dot { background:linear-gradient(135deg,var(--art-1),var(--art-2)); color:#fff; }
+  .group-diag .g-member .dot { background:rgba(127,127,127,0.16); color:var(--inv-2); }
+  .group-diag .g-leader b, .group-diag .g-member b { font-size:14px; font-weight:600; display:block; }
+  .group-diag .g-leader span, .group-diag .g-member span { font-size:12px; color:var(--inv-2); }
+  .group-diag .g-leader .badge { margin-left:auto; font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--violet-2); background:rgba(127,127,127,0.14); padding:4px 9px; border-radius:999px; }
+  .group-diag .g-members { display:flex; flex-direction:column; gap:8px; padding-left:22px; position:relative; }
+  .group-diag .g-members::before { content:""; position:absolute; left:9px; top:-8px; bottom:14px; width:1.5px; background:var(--line); }
+  .group-diag .g-member { display:flex; align-items:center; gap:12px; background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:11px 13px; position:relative; }
+  .group-diag .g-member::before { content:""; position:absolute; left:-13px; top:50%; width:13px; height:1.5px; background:var(--line); }
+  .group-diag .g-member .join { margin-left:auto; font-size:11px; font-weight:600; color:var(--violet-2); }
+
+  /* Alt-band sections (Scenes, Pricing) — invert relative to the base theme */
+  .light { background:var(--light); color:var(--ink); }
+  /* Inside the dark island, the monochrome accent inverts to a light fill/text
+     (--ink/--light flip per theme, so this stays correct in both). */
+  .light .btn-primary { background:var(--ink); color:var(--light); }
+  .light .free, .light .pill, .light .later { color:var(--ink); }
+  .light .pill, .light .later { background:rgba(127,127,127,0.22); }
+  .light .scene .dot, .light .step-n { background:var(--ink); color:var(--light); }
+  .light .lead, .light .sec-head p { color:var(--ink-2); }
+  .split { display:grid; grid-template-columns:1.05fr 1fr; gap:64px; align-items:center; }
+  .scene-card { background:var(--soft); border:1px solid var(--line-dk); border-radius:24px; padding:24px; }
+  .scene { display:flex; align-items:center; gap:14px; background:var(--light); border:1px solid var(--line-dk); border-radius:16px; padding:16px; box-shadow:0 12px 30px -22px rgba(0,0,0,0.4); }
+  .scene + .scene { margin-top:12px; }
+  .scene .dot { width:46px; height:46px; border-radius:13px; background:linear-gradient(135deg, var(--art-1),var(--art-2)); display:grid; place-items:center; color:#fff; flex:none; }
+  .scene b { display:block; font-size:15px; }
+  .scene span { font-size:13px; color:var(--ink-2); }
+  .pill { margin-left:auto; font-size:12px; font-weight:600; color:var(--violet-dk); background:rgba(127,127,127,0.12); padding:6px 12px; border-radius:980px; }
+  .light h2 { color:var(--ink); }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:56px; }
+  .step-n { display:inline-grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--violet); color:#fff; font-size:14px; font-weight:700; margin-bottom:14px; }
+  .steps .step b { display:block; font-size:17px; color:var(--ink); letter-spacing:-0.01em; }
+  .steps .step p { color:var(--ink-2); font-size:14.5px; margin-top:6px; line-height:1.55; }
+
+  /* Comparison table */
+  .compare { margin-top:54px; border:1px solid var(--line); border-radius:22px; overflow:hidden; background:var(--bg-2); }
+  .compare table { width:100%; border-collapse:collapse; font-size:14.5px; }
+  .compare th, .compare td { padding:15px 18px; text-align:left; border-bottom:1px solid var(--line); }
+  .compare thead th { font-size:13px; font-weight:600; color:var(--inv-2); letter-spacing:.01em; text-align:center; }
+  .compare thead th.us { color:var(--violet-2); }
+  .compare tbody th { font-weight:500; color:var(--inv); }
+  .compare td { color:var(--inv-2); text-align:center; }
+  .compare td.us { color:var(--inv); font-weight:600; background:rgba(127,127,127,0.06); }
+  .compare tbody tr:last-child th, .compare tbody tr:last-child td { border-bottom:0; }
+  .compare .yes { color:var(--violet-2); font-weight:700; }
+  .compare .no  { color:var(--inv-2); opacity:.55; }
+  .compare .part { color:var(--inv-2); }
+  .compare-note { font-size:clamp(16px,1.7vw,19px); color:var(--inv-2); margin-top:clamp(28px,4vw,44px); max-width:none; line-height:1.6; font-weight:400; text-wrap:pretty; }
+  .compare-note b { color:var(--inv); font-weight:600; }
+
+  /* Platforms */
+  .plat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:54px; }
+  .plat { border:1px solid var(--line); border-radius:20px; padding:30px 26px; background:linear-gradient(180deg, var(--bg-2), var(--bg)); }
+  .plat .tag { font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--violet-2); }
+  .plat h3 { font-size:22px; font-weight:600; letter-spacing:-0.02em; margin:10px 0 12px; }
+  .plat p { color:var(--inv-2); font-size:14.5px; line-height:1.6; }
+  .plat ul { list-style:none; margin-top:16px; display:flex; flex-direction:column; gap:9px; }
+  .plat li { font-size:14px; color:var(--inv); display:flex; gap:10px; align-items:flex-start; }
+  .plat li::before { content:"›"; color:var(--violet-2); font-weight:700; }
+  .plat.soon { opacity:.92; }
+  .plat.soon .tag { color:var(--inv-2); }
+  .plat .status { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; margin-top:18px; padding:6px 12px; border-radius:980px; }
+  .plat .status.now { color:var(--violet-2); background:rgba(127,127,127,0.12); }
+  .plat .status.next { color:var(--inv-2); border:1px solid var(--line); }
+  .plat .status .led { width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .soon-badge { font-size:11px; font-weight:600; color:var(--inv-2); border:1px solid var(--line); border-radius:980px; padding:3px 10px; margin-left:8px; vertical-align:middle; }
+  .roadmap-note { margin-top:30px; border:1px dashed var(--line); border-radius:16px; padding:20px 24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; justify-content:center; text-align:center; }
+  .roadmap-note b { color:var(--inv); font-weight:600; }
+  .roadmap-note span { color:var(--inv-2); font-size:14.5px; }
+
+  /* Pricing */
+  .price-card { max-width:520px; margin:54px auto 0; text-align:center; border:1px solid var(--line-dk); border-radius:26px; padding:44px 32px; background:radial-gradient(120% 120% at 50% 0%, rgba(127,127,127,0.12), transparent 60%), var(--light); color:var(--ink); }
+  .price-card .amt { font-size:58px; font-weight:700; letter-spacing:-0.04em; color:var(--ink); }
+  .price-card .amt small { font-size:16px; color:var(--ink-2); font-weight:500; letter-spacing:normal; margin-left:10px; }
+  .price-card .free { font-size:15px; color:var(--ink); font-weight:600; margin-bottom:8px; }
+  .price-card .later { display:inline-block; margin-top:14px; font-size:13px; font-weight:600; color:var(--ink); background:rgba(127,127,127,0.22); padding:6px 14px; border-radius:980px; }
+  .price-card p { color:var(--ink-2); margin-top:14px; font-size:15px; }
+  .price-card .btn { margin-top:24px; }
+  .price-points { display:flex; justify-content:center; gap:26px; flex-wrap:wrap; margin-top:22px; }
+  .price-points span { font-size:13.5px; color:var(--ink-2); display:inline-flex; align-items:center; gap:7px; }
+  .price-points span::before { content:"✓"; color:var(--violet-2); font-weight:700; }
+
+  /* CTA */
+  .cta-band { text-align:left; padding:clamp(80px,12vw,140px) 0; }
+  .cta-band::before { content:""; position:absolute; inset:0; background:radial-gradient(60% 100% at 50% 100%, rgba(127,127,127,0.22), transparent 70%); pointer-events:none; }
+  .cta-band .wrap { position:relative; }
+  .cta-band .cta-row { justify-content:flex-start; }
+
+  /* Footer */
+  footer { border-top:1px solid var(--line); padding:48px 0 56px; color:var(--inv-2); font-size:13.5px; }
+  footer .top { display:flex; justify-content:space-between; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  footer .flinks { display:flex; gap:26px; flex-wrap:wrap; }
+  footer .flinks a:hover { color:var(--inv); }
+  .disclaimer { margin-top:28px; padding-top:22px; border-top:1px solid var(--line); max-width:none; line-height:1.6; }
+
+  /* ===== Device family — "one app, every screen" =====
+     Pure CSS/SVG device frames (fixed dark bezels) around themed screens
+     (screen fills use --bg/--inv so they follow light/dark). Screen UI is sized
+     in em against each device's own font-size, so one set of .ui rules scales
+     from the Watch to the Mac. */
+  .family-stage { position:relative; display:flex; align-items:flex-end; justify-content:center; gap:clamp(8px,1.6vw,20px); flex-wrap:nowrap; margin-top:clamp(30px,4.5vw,54px); padding:20px 0 6px; }
+  .family-stage::before { content:""; position:absolute; left:50%; bottom:2%; transform:translateX(-50%); width:min(94%,940px); height:64%; z-index:0; pointer-events:none; background:radial-gradient(58% 100% at 50% 100%, rgba(127,127,127,0.20), transparent 72%); filter:blur(8px); }
+  .dv { position:relative; z-index:1; flex:none; display:flex; flex-direction:column; align-items:center; }
+  .dv-cap { margin-top:13px; font-size:12px; font-weight:600; letter-spacing:0.01em; color:var(--inv-2); }
+  .dv-cap .soon { margin-left:6px; font-size:9px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--inv-2); border:1px solid var(--line); border-radius:999px; padding:2px 7px; vertical-align:1.5px; }
+  .dv-body { background:#17171b; border:1px solid rgba(255,255,255,0.07); position:relative; box-shadow:0 36px 72px -34px rgba(0,0,0,0.72), 0 14px 34px -22px rgba(0,0,0,0.5); }
+  .dv-screen { position:relative; overflow:hidden; background:var(--bg); color:var(--inv); }
+  .dv-cam { position:absolute; z-index:5; background:#000; opacity:0.55; border-radius:50%; }
+
+  /* Shared screen UI (em-based) */
+  .ui, .ui-now { height:100%; padding:1em; display:flex; flex-direction:column; }
+  .ui-top { display:flex; align-items:center; justify-content:space-between; font-size:0.66em; color:var(--inv-2); margin-bottom:0.7em; }
+  .ui-top .dot { color:var(--violet-2); font-weight:600; }
+  .ui-row { display:flex; align-items:center; gap:0.6em; padding:0.32em 0; }
+  .ui-row .a { width:2.1em; height:2.1em; border-radius:0.5em; background:linear-gradient(135deg,var(--art-1),var(--art-2)); flex:none; }
+  .ui-row .m { flex:1; min-width:0; }
+  .ui-row .m b { display:block; font-size:0.78em; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ui-row .m i { display:block; font-style:normal; font-size:0.62em; color:var(--inv-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ui-row .p { width:1.85em; height:1.85em; border-radius:50%; background:rgba(127,127,127,0.16); display:grid; place-items:center; font-size:0.6em; flex:none; }
+  .ui-row.on .p { background:var(--violet); color:var(--on-fill); }
+  .ui-h { font-size:0.6em; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--inv-2); margin:0.7em 0 0.15em; }
+  .ui-now .art { width:100%; aspect-ratio:1/1; max-height:52%; border-radius:0.8em; background:linear-gradient(135deg,var(--art-1),var(--art-2)); flex:none; display:grid; place-items:center; color:#fff; font-size:1.5em; box-shadow:0 0.6em 1.4em -0.6em rgba(0,0,0,0.6); }
+  .ui-now .t { margin-top:0.8em; }
+  .ui-now .t b { display:block; font-size:0.92em; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ui-now .t i { display:block; font-style:normal; font-size:0.68em; color:var(--inv-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ui-now .bar { height:0.28em; border-radius:1em; background:rgba(127,127,127,0.24); margin-top:0.8em; overflow:hidden; }
+  .ui-now .bar i { display:block; height:100%; width:44%; background:var(--violet-2); border-radius:1em; }
+  .ui-now .ctrl { display:flex; align-items:center; justify-content:center; gap:1.2em; margin-top:0.85em; color:var(--inv); font-size:0.82em; }
+  .ui-now .ctrl .pp { width:2.4em; height:2.4em; border-radius:50%; background:var(--violet); color:var(--on-fill); display:grid; place-items:center; font-size:0.7em; }
+  .ui-now.mini { justify-content:center; text-align:center; padding:0.9em 0.7em; }
+
+  /* Laptop (Mac) */
+  .dv-mac .dv-body { width:clamp(240px,30vw,380px); border-radius:14px; padding:11px 11px 13px; }
+  .dv-mac .dv-screen { border-radius:5px; aspect-ratio:16/10; font-size:12px; }
+  .dv-mac .dv-cam { top:5px; left:50%; transform:translateX(-50%); width:5px; height:5px; }
+  .dv-mac .dv-base { width:clamp(272px,34vw,430px); height:12px; background:linear-gradient(180deg,#c7c7cd,#9a9aa1); border-radius:0 0 12px 12px; position:relative; box-shadow:0 16px 26px -16px rgba(0,0,0,0.5); }
+  .dv-mac .dv-base::after { content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:74px; height:5px; background:rgba(0,0,0,0.18); border-radius:0 0 7px 7px; }
+
+  /* iPad */
+  .dv-ipad .dv-body { width:clamp(128px,14vw,175px); border-radius:17px; padding:9px; }
+  .dv-ipad .dv-screen { border-radius:8px; aspect-ratio:3/4; font-size:10.5px; }
+  .dv-ipad .dv-cam { top:50%; left:3.5px; transform:translateY(-50%); width:4px; height:4px; }
+
+  /* iPhone — content clears the notch (extra top padding) */
+  .dv-iphone .dv-body { width:clamp(102px,11.5vw,126px); border-radius:24px; padding:5px; }
+  .dv-iphone .dv-screen { border-radius:20px; aspect-ratio:9/19.5; font-size:8.6px; }
+  .dv-iphone .dv-notch { position:absolute; z-index:5; top:6px; left:50%; transform:translateX(-50%); width:34%; height:11px; background:#000; border-radius:10px; }
+  .dv-iphone .ui-now { padding-top:2.6em; }
+
+  /* Android — content clears the hole-punch camera */
+  .dv-android .dv-body { width:clamp(102px,11.5vw,126px); border-radius:20px; padding:5px; }
+  .dv-android .dv-screen { border-radius:16px; aspect-ratio:9/19.5; font-size:8.6px; }
+  .dv-android .dv-cam { z-index:5; top:7px; left:50%; transform:translateX(-50%); width:7px; height:7px; opacity:0.9; }
+  .dv-android .ui { padding-top:2.2em; }
+
+  /* Apple Watch */
+  .dv-watch .dv-body { width:clamp(70px,8vw,90px); border-radius:30px; padding:6px; }
+  .dv-watch .dv-screen { border-radius:26px; aspect-ratio:1/1.16; font-size:8px; }
+  .dv-watch .dv-crown { position:absolute; right:-3px; top:36%; width:4px; height:15px; border-radius:3px; background:#33333a; }
+  .dv-watch .ui-now.mini .t b { font-size:1em; }
+
+  @media (max-width:860px){
+    /* Too narrow for the full row — scroll the lineup instead of squashing it. */
+    .family-stage { overflow-x:auto; justify-content:flex-start; padding:20px 4px 18px; -webkit-overflow-scrolling:touch; }
+    .family-stage::before { display:none; }
+  }
+
+  /* Reveal */
+  .reveal { opacity:0; transform:translateY(22px); transition:opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1); }
+  .reveal.in { opacity:1; transform:none; }
+
+  @media (max-width:860px){
+    .nav-links { display:none; }
+    .nav-toggle { display:block; }
+    .why-cols { grid-template-columns:1fr; gap:36px; }
+    .grid, .plat-grid { grid-template-columns:1fr 1fr; }
+    .split { grid-template-columns:1fr; gap:36px; }
+    .show { grid-template-columns:1fr; gap:32px; }
+    .show.flip .show-copy { order:1; }
+    .show.flip .show-art  { order:2; }
+    .surfaces { grid-template-columns:repeat(2,1fr); }
+    .surf.col-7, .surf.col-5, .surf.col-6 { grid-column:span 1; }
+    .compare { overflow-x:auto; }
+    .compare table { min-width:620px; }
+  }
+  @media (max-width:560px){
+    .grid, .plat-grid, .steps { grid-template-columns:1fr; }
+    .surfaces { grid-template-columns:1fr; }
+    .strip .wrap { gap:14px 28px; }
+    h1 { letter-spacing:-0.03em; }
+  }
+  @media (prefers-reduced-motion:reduce){ .reveal{transition:none;opacity:1;transform:none;} html{scroll-behavior:auto;} body{transition:none;} }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect class="tile" width="32" height="32" rx="7.5"/><g class="glyph" fill="none" stroke-linecap="round" stroke-width="2.2"><circle class="src" cx="10.5" cy="16" r="2.7"/><path d="M10.5 9.6 A6.4 6.4 0 0 1 10.5 22.4" opacity="1"/><path d="M10.5 5.7 A10.3 10.3 0 0 1 10.5 26.3" opacity="0.6"/><path d="M10.5 1.8 A14.2 14.2 0 0 1 10.5 30.2" opacity="0.32"/></g></svg> <span class="word">Maestro</span> <span class="sfx">for Sonos</span></a>
+    <div class="nav-right">
+      <nav class="nav-links">
+        <a href="#devices">Devices</a>
+        <a href="#features">Features</a>
+        <a href="#scenes">Scenes</a>
+        <a href="#surfaces">Surfaces</a>
+        <a href="#compare">Compare</a>
+        <a href="#pricing">Pricing</a>
+        <a class="btn btn-primary" href="#pricing">Get Maestro</a>
+      </nav>
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle light or dark theme" onclick="toggleTheme()">☀</button>
+      <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').style.display='flex'">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-photo"></div>
+    <div class="hero-veil"></div>
+    <div class="wrap">
+      <span class="eyebrow">◐ Local · Instant · No account</span>
+      <h1>All of your home’s sound,<br><span class="grad">one tap away.</span></h1>
+      <p class="sub">Maestro controls every Sonos room over your local network — from your Mac menu bar, iPad and iPhone, your Lock Screen, Dynamic Island and Apple Watch, all the way to Android. Native, fast, private, and <span style="white-space:nowrap">beautifully simple.</span></p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#pricing">Get Maestro</a>
+        <a class="btn btn-ghost" href="#features">See what it does →</a>
+      </div>
+      <p class="cta-note">One app across Mac, iPad, iPhone &amp; Apple Watch — and Android</p>
+    </div>
+  </section>
+
+  <section class="sec stage-band" id="devices">
+    <div class="wrap">
+      <div class="sec-head center wide reveal" style="margin-bottom:clamp(18px,2.6vw,30px)">
+        <span class="eyebrow">◐ One app · every screen</span>
+        <h2 style="margin-top:16px">One tap, on every screen you own.</h2>
+        <p class="lead" style="margin-left:auto;margin-right:auto">The same fast, local Maestro — Mac, iPad, iPhone, Apple Watch, and Android.</p>
+      </div>
+
+      <div class="family-stage reveal">
+        <!-- Mac — menu-bar popover (room list) -->
+        <div class="dv dv-mac">
+          <div class="dv-body">
+            <span class="dv-cam"></span>
+            <div class="dv-screen">
+              <div class="ui">
+                <div class="ui-top"><span>4 rooms playing</span><span class="dot">◐ Maestro</span></div>
+                <div class="ui-row on"><span class="a"></span><span class="m"><b>Main Living Room</b><i>BBC Radio 6 Music</i></span><span class="p">❚❚</span></div>
+                <div class="ui-row"><span class="a"></span><span class="m"><b>Kitchen</b><i>Daily Mix 1</i></span><span class="p">▶</span></div>
+                <div class="ui-row"><span class="a"></span><span class="m"><b>Den</b><i>Grouped · Living Room</i></span><span class="p">▶</span></div>
+                <div class="ui-row"><span class="a"></span><span class="m"><b>Patio</b><i>Sonos Move · 78%</i></span><span class="p">▶</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="dv-base"></div>
+          <span class="dv-cap">Mac</span>
+        </div>
+
+        <!-- iPad — now playing -->
+        <div class="dv dv-ipad">
+          <div class="dv-body">
+            <span class="dv-cam"></span>
+            <div class="dv-screen">
+              <div class="ui-now">
+                <div class="art">♪</div>
+                <div class="t"><b>Nightswimming</b><i>R.E.M. — Automatic for the People</i></div>
+                <div class="bar"><i></i></div>
+                <div class="ctrl"><span>⏮</span><span class="pp">❚❚</span><span>⏭</span></div>
+              </div>
+            </div>
+          </div>
+          <span class="dv-cap">iPad</span>
+        </div>
+
+        <!-- iPhone — now playing -->
+        <div class="dv dv-iphone">
+          <div class="dv-body">
+            <span class="dv-notch"></span>
+            <div class="dv-screen">
+              <div class="ui-now">
+                <div class="art">♪</div>
+                <div class="t"><b>Nightswimming</b><i>R.E.M.</i></div>
+                <div class="bar"><i></i></div>
+                <div class="ctrl"><span>⏮</span><span class="pp">❚❚</span><span>⏭</span></div>
+              </div>
+            </div>
+          </div>
+          <span class="dv-cap">iPhone</span>
+        </div>
+
+        <!-- Android — dashboard (hero + other rooms) -->
+        <div class="dv dv-android">
+          <div class="dv-body">
+            <span class="dv-cam"></span>
+            <div class="dv-screen">
+              <div class="ui">
+                <div class="ui-top"><span class="dot">◐ Maestro</span><span>⋯</span></div>
+                <div class="ui-row on"><span class="a"></span><span class="m"><b>Kitchen</b><i>Daily Mix 1</i></span><span class="p">❚❚</span></div>
+                <div class="ui-h">Other rooms</div>
+                <div class="ui-row"><span class="a"></span><span class="m"><b>Living Room</b><i>BBC Radio 6</i></span><span class="p">▶</span></div>
+                <div class="ui-row"><span class="a"></span><span class="m"><b>Bedroom</b><i>Ambient</i></span><span class="p">▶</span></div>
+              </div>
+            </div>
+          </div>
+          <span class="dv-cap">Android</span>
+        </div>
+
+        <!-- Apple Watch — mini transport -->
+        <div class="dv dv-watch">
+          <div class="dv-body">
+            <span class="dv-crown"></span>
+            <div class="dv-screen">
+              <div class="ui-now mini">
+                <div class="t"><b>Kitchen</b><i>Daily Mix 1</i></div>
+                <div class="bar"><i></i></div>
+                <div class="ctrl"><span>⏮</span><span class="pp">❚❚</span><span>⏭</span></div>
+              </div>
+            </div>
+          </div>
+          <span class="dv-cap">Watch</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div class="wrap">
+      <div><b>No account.</b> Works on your LAN.</div>
+      <div><b>No subscription.</b> One-time unlock.</div>
+      <div><b>No waiting.</b> Opens instantly.</div>
+    </div>
+  </section>
+
+  <section class="sec why" id="features">
+    <div class="wrap">
+      <div class="why-cols">
+        <div class="sec-head reveal">
+          <span class="eyebrow">The gap Maestro fills</span>
+          <h2 style="margin-top:16px">Sonos stopped building for the Mac.</h2>
+          <p class="lead">Their desktop app is Intel-only — it runs through Rosetta on Apple Silicon, and Apple is removing Rosetta in an upcoming macOS release, after which it won't open at all. Sonos's official “Mac experience” is now a browser tab. Maestro is the <b style="color:var(--inv)">native Apple Silicon</b> controller the Mac has been missing — fast, local, and built to last.</p>
+        </div>
+        <div class="sec-head reveal">
+          <span class="eyebrow">The fast layer on top</span>
+          <h2 style="margin-top:16px">Everything you reach for, none of the clutter.</h2>
+          <p class="lead">The official app is powerful but heavy. Maestro is the fast layer on top — the controls you actually use, on the surfaces you're already looking at. No sign-in. No spinner. No cloud round-trip.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><h3>Instant local control</h3><p>Discovers your speakers over the network and responds the moment you tap — no cloud round-trip, no loading screen, even when Sonos's servers are having a bad day.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Private &amp; local-first</h3><p>No account, no sign-in, no telemetry. Maestro talks straight to your speakers on your LAN — nothing leaves your home network. Your music stays your business.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2.5"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg></div><h3>Native Apple Silicon</h3><p>Built for Apple Silicon Macs in 2026 — not the Intel-era app running through Rosetta on borrowed time. Opens instantly, sips power, feels like part of macOS.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="5.5"/><circle cx="15" cy="15" r="5.5"/></svg></div><h3>One-tap grouping</h3><p>Join any rooms into a group and play them in perfect sync, or break them apart — all from a single tap. Volume follows the whole group or each room.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M10 8.3l6 3.7-6 3.7z" fill="currentColor" stroke="none"/></svg></div><h3>Full now-playing</h3><p>Play, pause, skip, scrub the seek bar, shuffle and repeat. Volume and mute per room and per group. Album art front and centre.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18M12 3v18M18 3v18"/><circle cx="6" cy="8" r="2.3" fill="currentColor" stroke="none"/><circle cx="12" cy="14.5" r="2.3" fill="currentColor" stroke="none"/><circle cx="18" cy="7" r="2.3" fill="currentColor" stroke="none"/></svg></div><h3>EQ with named presets</h3><p>Flat, Bass Boost, Treble Boost, Vocal and Late Night — one-tap sound profiles Sonos doesn't offer natively. Plus bass, treble and loudness.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"/></svg></div><h3>Favourites, playlists &amp; queue</h3><p>Browse your Sonos favourites and playlists with art, then edit the queue — reorder, remove, jump, or save the lot as a new playlist.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 2"/><path d="M5 3.5 2.5 6M19 3.5 21.5 6"/></svg></div><h3>Alarms &amp; sleep timer</h3><p>Wake to your kitchen radio, drift off on a timer. Set alarms and a sleep countdown without digging through menus.</p></div>
+        <div class="feat reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="8" y="6" width="8" height="5" rx="1.2"/><path d="M8 14.5h8M8 17.5h5"/></svg></div><h3>Glanceable everywhere</h3><p>Home &amp; Lock Screen widgets, Live Activity, Dynamic Island and an Apple Watch app — live controls on every surface you already glance at.</p></div>
+      </div>
+      <p class="lead reveal" style="margin-top:clamp(28px,4vw,44px)">Works with every Sonos speaker — including portables like <b style="color:var(--inv)">Move</b> and <b style="color:var(--inv)">Roam</b> on Wi-Fi, with battery level shown right in the app. Plus Siri, Shortcuts, global keyboard shortcuts, media-key support, and full light &amp; dark mode.</p>
+    </div>
+  </section>
+
+  <!-- ===================== SHOWCASE ROWS ===================== -->
+  <section class="sec" id="showcase" style="padding-top:0">
+    <div class="wrap">
+
+      <!-- Now playing -->
+      <div class="show reveal">
+        <div class="show-copy">
+          <span class="kicker">Now playing</span>
+          <h3>The full controls, with the art up front.</h3>
+          <p>Open a room and you get the whole transport — play, pause, skip, a draggable seek bar, shuffle and repeat — over a soft, blurred wash of the album art. Volume and mute sit right there, per room or for the entire group.</p>
+          <ul class="show-list">
+            <li>Scrub anywhere with the seek bar</li>
+            <li>Shuffle &amp; repeat, one tap each</li>
+            <li>Per-room and per-group volume + mute</li>
+            <li>Album-art now-playing background</li>
+          </ul>
+          <div class="vs"><span>The official app buries scrubbing and per-group volume. <b>Maestro keeps them one tap away.</b></span></div>
+        </div>
+        <div class="show-art">
+          <div class="mock np reveal">
+            <div class="np-bg" aria-hidden="true"></div>
+            <div class="np-inner">
+              <div class="mock-head"><b>Main Living Room</b><span>Group · 3 rooms</span></div>
+              <div class="np-art">♪</div>
+              <div class="np-title"><b>Nightswimming</b><span>R.E.M. — Automatic for the People</span></div>
+              <div class="np-seek">
+                <div class="np-bar"><i></i></div>
+                <div class="np-time"><span>1:54</span><span>-2:33</span></div>
+              </div>
+              <div class="np-ctrl">
+                <span class="sm on">⤬</span>
+                <span class="lg">⏮</span>
+                <span class="pp">❚❚</span>
+                <span class="lg">⏭</span>
+                <span class="sm">↻</span>
+              </div>
+              <div class="np-vol">
+                <span>🔈</span>
+                <span class="track"><i></i></span>
+                <span>56</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EQ / Sound -->
+      <div class="show flip reveal">
+        <div class="show-copy">
+          <span class="kicker">Sound</span>
+          <h3>EQ presets the official app never had.</h3>
+          <p>Sonos exposes only bass and treble. Maestro adds five named presets you actually reach for — tip the balance for a film, soften the night, or lift a podcast voice — then fine-tune bass, treble and loudness underneath.</p>
+          <ul class="show-list">
+            <li>Flat · Bass Boost · Treble Boost · Vocal · Late Night</li>
+            <li>Manual bass, treble &amp; loudness</li>
+            <li>Night Sound &amp; Speech Enhancement on soundbars</li>
+          </ul>
+          <div class="vs"><span>Named one-tap presets are <b>a Maestro feature</b> — Sonos has no graphic EQ at all.</span></div>
+        </div>
+        <div class="show-art">
+          <div class="mock reveal">
+            <div class="mock-head"><b>Sound — Kitchen</b><span>Late Night</span></div>
+            <div class="chips">
+              <span class="chip">Flat</span>
+              <span class="chip">Bass Boost</span>
+              <span class="chip">Treble Boost</span>
+              <span class="chip">Vocal</span>
+              <span class="chip on">Late Night</span>
+            </div>
+            <div class="eq-faders" aria-hidden="true">
+              <div class="col"><div class="bar"><i style="bottom:64%"></i></div><label>Bass</label></div>
+              <div class="col"><div class="bar"><i style="bottom:48%"></i></div><label>Mid</label></div>
+              <div class="col"><div class="bar"><i style="bottom:72%"></i></div><label>Treble</label></div>
+              <div class="col"><div class="bar"><i style="bottom:38%"></i></div><label>Loud</label></div>
+            </div>
+            <div class="eq-toggle"><span>Night Sound</span><span class="switch"></span></div>
+            <div class="eq-toggle"><span>Speech Enhancement</span><span class="switch off"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grouping -->
+      <div class="show reveal">
+        <div class="show-copy">
+          <span class="kicker">Grouping</span>
+          <h3>Whole-house sync, in one tap.</h3>
+          <p>Pick the rooms; the first becomes the group leader and the rest fall into sync. Move music between rooms, bond them for a party, or split them back out — Maestro keeps the group state honest and the volume group-aware.</p>
+          <ul class="show-list">
+            <li>One-tap join &amp; ungroup</li>
+            <li>Group leader handles the source</li>
+            <li>Group volume or per-room trim</li>
+          </ul>
+          <div class="vs"><span>Grouping is <b>first-class in Maestro</b>, not buried three taps deep.</span></div>
+        </div>
+        <div class="show-art">
+          <div class="mock reveal">
+            <div class="mock-head"><b>Group</b><span>BBC Radio 6 · 20%</span></div>
+            <div class="group-diag">
+              <div class="g-leader">
+                <div class="dot">♪</div>
+                <div><b>Main Living Room</b><span>Leader · BBC Radio 6 Music</span></div>
+                <span class="badge">Leader</span>
+              </div>
+              <div class="g-members">
+                <div class="g-member"><div class="dot">✓</div><div><b>Den</b><span>In sync</span></div><span class="join">Joined</span></div>
+                <div class="g-member"><div class="dot">✓</div><div><b>Kitchen</b><span>In sync</span></div><span class="join">Joined</span></div>
+                <div class="g-member"><div class="dot">+</div><div><b>Patio</b><span>Sonos Move</span></div><span class="join">Tap to add</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SCENES (hero) ===================== -->
+  <section class="sec light" id="scenes">
+    <div class="wrap">
+      <div class="split">
+        <div class="reveal">
+          <span class="eyebrow" style="color:var(--ink);border-color:var(--line-dk);background:rgba(127,127,127,0.14)">The hero feature</span>
+          <h2 style="margin-top:22px">Scenes. Your home,<br>choreographed.</h2>
+          <p class="lead">A Scene bundles the rooms, the music and the volume into a single tap. Morning kitchen radio. Whole-house party. Wind-down in the bedroom. Set them once — run them forever. Nobody else makes this the hero.</p>
+        </div>
+        <div class="scene-card reveal">
+          <div class="scene"><div class="dot">♪</div><div><b>Whole House</b><span>4 rooms · BBC Radio 6</span></div><span class="pill">20%</span></div>
+          <div class="scene"><div class="dot">☀</div><div><b>Morning Kitchen</b><span>Kitchen · Daily Mix</span></div><span class="pill">35%</span></div>
+          <div class="scene"><div class="dot">☾</div><div><b>Wind Down</b><span>Bedroom · Ambient</span></div><span class="pill">12%</span></div>
+        </div>
+      </div>
+
+      <div class="steps reveal">
+        <div class="step"><span class="step-n">1</span><b>Group the rooms</b><p>Pick the rooms for the scene — the first becomes the group leader, the rest join it.</p></div>
+        <div class="step"><span class="step-n">2</span><b>Start the music</b><p>Optionally kick off a favourite or playlist across the whole group.</p></div>
+        <div class="step"><span class="step-n">3</span><b>Set the volume</b><p>Land everything at just the right level — then it all fires in a single tap.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SURFACES ===================== -->
+  <section class="sec" id="surfaces">
+    <div class="wrap">
+      <div class="sec-head wide reveal">
+        <h2>Control from every surface.</h2>
+        <p class="lead">Maestro lives where your eyes already are — the menu bar, the Home Screen, the Lock Screen, the Dynamic Island and your wrist — with live controls on every one.</p>
+      </div>
+
+      <div class="surfaces">
+        <!-- Home-screen widget -->
+        <div class="surf col-6 reveal">
+          <span class="label">Home Screen widget</span>
+          <p class="desc">Now-playing with live play, pause and skip — right on your Home Screen, no app to open.</p>
+          <div class="vis">
+            <div class="widget">
+              <div class="wbg" aria-hidden="true"></div>
+              <div class="wrow">
+                <div class="wart" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="M4 27 L15 15 L23 22 L37 8" stroke="#fff" stroke-width="2.6" opacity="0.9" stroke-linejoin="round" stroke-linecap="round"/><circle cx="31" cy="29" r="3.4" fill="#fff" opacity="0.55"/></svg></div>
+                <div class="wmeta"><b>Kitchen</b><span>Daily Mix 1</span></div>
+              </div>
+              <div class="wctrl"><span>⏮</span><span class="wpp">❚❚</span><span>⏭</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lock screen + live activity -->
+        <div class="surf col-6 reveal">
+          <span class="label">Lock Screen &amp; Live Activity</span>
+          <p class="desc">A glanceable now-playing card on the Lock Screen, with accessory widgets and transport controls.</p>
+          <div class="vis">
+            <div class="lock">
+              <div class="clock"><div class="t">9:41</div><div class="d">Tuesday, 18 June</div></div>
+              <div class="la">
+                <div class="laart" aria-hidden="true"><svg viewBox="0 0 40 40"><g fill="#fff"><rect x="9" y="19" width="4" height="13" rx="2" opacity="0.9"/><rect x="18" y="10" width="4" height="22" rx="2" opacity="0.7"/><rect x="27" y="23" width="4" height="9" rx="2" opacity="0.5"/></g></svg></div>
+                <div class="lameta"><b>BBC Radio 6 Music</b><span>Main Living Room</span></div>
+                <div class="lapp">❚❚</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div class="surf col-7 reveal">
+          <span class="label">Dynamic Island</span>
+          <p class="desc">What's playing lives in the Island — tap to expand, control without leaving the app you're in.</p>
+          <div class="vis">
+            <div class="island">
+              <div class="iart" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="#fff" stroke-linecap="round"><path d="M5 16 q7.5 -6 15 0 t15 0" stroke-width="2.4" opacity="0.9"/><path d="M5 25 q7.5 -6 15 0 t15 0" stroke-width="2.4" opacity="0.55"/></svg></div>
+              <div class="imeta"><b>Nightswimming</b><span>R.E.M.</span></div>
+              <div class="iwave" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apple Watch -->
+        <div class="surf col-5 reveal">
+          <span class="label">Apple Watch</span>
+          <p class="desc">Transport, volume, favourites, the queue and sound presets — all on your wrist.</p>
+          <div class="vis">
+            <div class="watch">
+              <div class="wbg2" aria-hidden="true"></div>
+              <div class="wc">
+                <div class="wtitle"><b>Kitchen</b><span>Daily Mix 1</span></div>
+                <div class="wbar"><i></i></div>
+                <div class="wt"><span>⏮</span><span class="wpp2">❚❚</span><span>⏭</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mac-note reveal">
+        <span class="k">Also on Mac</span>
+        <p>The same controls live in a <b>menu-bar popover</b> and a <b>floating mini-player</b> — driven by global keyboard shortcuts, media keys, Siri and Shortcuts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPARE ===================== -->
+  <section class="sec" id="compare" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head wide reveal">
+        <h2>How <svg class="mark hmark" viewBox="0 0 32 32" aria-hidden="true"><rect class="tile" width="32" height="32" rx="7.5"/><g class="glyph" fill="none" stroke-linecap="round" stroke-width="2.2"><circle class="src" cx="10.5" cy="16" r="2.7"/><path d="M10.5 9.6 A6.4 6.4 0 0 1 10.5 22.4" opacity="1"/><path d="M10.5 5.7 A10.3 10.3 0 0 1 10.5 26.3" opacity="0.6"/><path d="M10.5 1.8 A14.2 14.2 0 0 1 10.5 30.2" opacity="0.32"/></g></svg>Maestro compares.</h2>
+        <p class="lead">Honest about where we win — and where we're the new arrival. Maestro leads on native Apple Silicon, Scenes, EQ presets, the surfaces, and one app across every device.</p>
+      </div>
+      <div class="compare reveal">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="us">Maestro for Sonos</th>
+              <th>Official Sonos app</th>
+              <th>Other Mac controllers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th>Native Apple Silicon Mac app</th><td class="us"><span class="yes">Built native</span></td><td><span class="no">Intel / Rosetta · web tab</span></td><td><span class="yes">Native</span></td></tr>
+            <tr><th>Menu-bar control</th><td class="us"><span class="yes">Yes</span></td><td><span class="no">No</span></td><td><span class="yes">Yes</span></td></tr>
+            <tr><th>Local-first · no account</th><td class="us"><span class="yes">Yes</span></td><td><span class="no">Cloud account</span></td><td><span class="yes">Local</span></td></tr>
+            <tr><th>Scenes (rooms + source + volume)</th><td class="us"><span class="yes">Hero feature</span></td><td><span class="part">Limited</span></td><td><span class="part">Limited</span></td></tr>
+            <tr><th>EQ named presets</th><td class="us"><span class="yes">5 presets</span></td><td><span class="part">Bass / treble only</span></td><td><span class="part">Rare</span></td></tr>
+            <tr><th>Widgets · Lock Screen · Dynamic Island</th><td class="us"><span class="yes">Yes</span></td><td><span class="part">Partial</span></td><td><span class="part">Partial</span></td></tr>
+            <tr><th>One app across Mac, iPhone &amp; Watch</th><td class="us"><span class="yes">Unified</span></td><td><span class="part">Separate apps</span></td><td><span class="part">Separate apps</span></td></tr>
+            <tr><th>Android (planned)</th><td class="us"><span class="yes">On the roadmap</span></td><td><span class="yes">Yes</span></td><td><span class="no">Mac-only</span></td></tr>
+            <tr><th>Price</th><td class="us"><span class="yes">£4.99 launch · £7.99</span></td><td>Free</td><td><span class="part">Higher one-time</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="compare-note reveal">Against the official app, Maestro is <b>the fast layer on top</b> — not a replacement for set-up, Trueplay or system config. There are good third-party Mac controllers too; we respect them, and we win on <b>native Apple Silicon</b>, <b>Scenes</b>, <b>EQ presets</b>, <b>the price for UK buyers</b>, and <b>one unified app across your devices</b> rather than separate Mac and phone apps.</p>
+    </div>
+  </section>
+
+  <!-- ===================== PLATFORMS / ROADMAP ===================== -->
+  <section class="sec" id="platforms" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head wide reveal">
+        <h2>One engine. Every device.</h2>
+        <p class="lead">The same fast, local control wherever you are — built on a single shared core, and heading to the platforms Sonos control forgot.</p>
+      </div>
+      <div class="plat-grid">
+        <div class="plat reveal">
+          <span class="tag">macOS · iOS · watchOS</span>
+          <h3>Apple, all of it</h3>
+          <p>The native Mac app Sonos never built, plus the iPhone, Lock Screen, Dynamic Island and Watch companions — one purchase, one experience.</p>
+          <ul>
+            <li>Menu-bar popover &amp; floating mini-player</li>
+            <li>Home &amp; Lock-Screen widgets</li>
+            <li>Live Activity &amp; Dynamic Island</li>
+            <li>Apple Watch with favourites, queue &amp; presets</li>
+            <li>Siri, Shortcuts &amp; global shortcuts</li>
+          </ul>
+          <span class="status now"><span class="led"></span>Available now</span>
+        </div>
+        <div class="plat reveal soon">
+          <span class="tag">Android <span class="soon-badge">Coming</span></span>
+          <h3>The one Android never had</h3>
+          <p>Great third-party Sonos control on Android basically doesn't exist — the Mac-only controllers can't follow you there. Maestro is coming to fix that, with the same local-first core.</p>
+          <ul>
+            <li>Home-screen widget &amp; quick-settings tile</li>
+            <li>Same Scenes &amp; one-tap grouping</li>
+            <li>System media controls on the lock screen</li>
+            <li>Local-first, no account</li>
+          </ul>
+          <span class="status next"><span class="led"></span>Coming next</span>
+        </div>
+        <div class="plat reveal soon">
+          <span class="tag">Windows · Linux <span class="soon-badge">Roadmap</span></span>
+          <h3>Desktop, beyond the Mac</h3>
+          <p>Sonos is winding down native desktop everywhere — not just on the Mac. A lightweight system-tray app brings the same instant, local control to Windows and Linux.</p>
+          <ul>
+            <li>System-tray popover</li>
+            <li>The same grouping &amp; Scenes</li>
+            <li>Tiny footprint, no bloat</li>
+            <li>Local-first, no account</li>
+          </ul>
+          <span class="status next"><span class="led"></span>On the roadmap</span>
+        </div>
+      </div>
+      <div class="roadmap-note reveal">
+        <b>One app, every device.</b>
+        <span>That's the wedge: not a Mac app and a separate phone app, but a single unified controller across everything you own.</span>
+      </div>
+      <div class="roadmap-note reveal">
+        <b>Your music services, coming soon.</b>
+        <span>Today Maestro plays your Sonos favourites, playlists and queue. Browsing and adding your music services — Spotify, Apple Music and more — is next on the roadmap.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PRICING ===================== -->
+  <section class="sec light" id="pricing">
+    <div class="wrap">
+      <div class="sec-head center wide reveal">
+        <h2>Honest pricing.</h2>
+        <p class="lead">Download free and try it. Unlock everything with a single payment — no subscription, ever.</p>
+      </div>
+      <div class="price-card reveal">
+        <div class="free">Free to download · 14-day full trial</div>
+        <div class="amt">£4.99 <small>launch price</small></div>
+        <span class="later">Rising to £7.99 after launch — get it early</span>
+        <p>One-time purchase. Pay once, own it for good — no account, no subscription, no nonsense.</p>
+        <a class="btn btn-primary" href="#">Coming to the App Store</a>
+        <div class="price-points">
+          <span>14-day full trial</span>
+          <span>One-time, not a subscription</span>
+          <span>No account, no cloud</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap reveal">
+      <h2>Control your Sonos from where you already are.</h2>
+      <div class="cta-row" style="margin-top:30px">
+        <a class="btn btn-primary" href="#pricing">Get Maestro</a>
+        <a class="btn btn-ghost" href="#features">Explore features</a>
+      </div>
+      <p class="cta-note">Native Apple Silicon · Local-first · No account · One-time price</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="#top"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect class="tile" width="32" height="32" rx="7.5"/><g class="glyph" fill="none" stroke-linecap="round" stroke-width="2.2"><circle class="src" cx="10.5" cy="16" r="2.7"/><path d="M10.5 9.6 A6.4 6.4 0 0 1 10.5 22.4" opacity="1"/><path d="M10.5 5.7 A10.3 10.3 0 0 1 10.5 26.3" opacity="0.6"/><path d="M10.5 1.8 A14.2 14.2 0 0 1 10.5 30.2" opacity="0.32"/></g></svg> <span class="word">Maestro</span> <span class="sfx">for Sonos</span></a>
+      <div class="flinks">
+        <a href="#devices">Devices</a>
+        <a href="#features">Features</a>
+        <a href="#scenes">Scenes</a>
+        <a href="#surfaces">Surfaces</a>
+        <a href="#compare">Compare</a>
+        <a href="#platforms">Platforms</a>
+        <a href="#pricing">Pricing</a>
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy</a>
+      </div>
+    </div>
+    <p class="disclaimer">Works with Sonos. Maestro is not affiliated with, authorised, endorsed by, or in any way officially connected with Sonos, Inc. “Sonos” is a trademark of Sonos, Inc. — used here only to describe compatibility. © 2026 Aquidigital Ltd.</p>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.14 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Theme toggle (system default, with manual override persisted)
+  function currentTheme() {
+    return document.documentElement.getAttribute('data-theme')
+      || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  }
+  function setThemeIcon() {
+    const b = document.getElementById('themeBtn');
+    if (b) b.textContent = currentTheme() === 'light' ? '☾' : '☀';
+  }
+  function toggleTheme() {
+    const next = currentTheme() === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('maestro-theme', next); } catch(e){}
+    setThemeIcon();
+  }
+  setThemeIcon();
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', setThemeIcon);
+
+  // Hero parallax — the photo drifts slower than the scroll. Disabled for reduced-motion.
+  (function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const photo = document.querySelector('.hero-photo');
+    const hero = document.querySelector('.hero');
+    if (!photo || !hero) return;
+    let ticking = false;
+    function update() {
+      const limit = hero.offsetHeight;               // only animate while the hero is in view
+      const y = Math.min(window.scrollY, limit);
+      photo.style.transform = 'translate3d(0,' + (y * 0.28) + 'px,0)';
+      ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+</script>
+</body>
+</html>
