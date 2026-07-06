@@ -83,7 +83,7 @@
   .nav .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; }
   .brand { display:flex; align-items:baseline; gap:9px; font-weight:600; letter-spacing:-0.02em; font-size:18px; }
   .brand .mark { align-self:center; }
-  .brand .sfx { font-size:12px; color:var(--inv-2); font-weight:500; letter-spacing:0; }
+  .brand .sfx { font-size:12px; color:var(--inv-2); font-weight:500; letter-spacing:0; margin-left:-4px; }
   .mark { width:27px; height:27px; display:block; }
   .mark .tile { fill:var(--inv); }
   .mark .glyph { stroke:var(--bg); }
@@ -132,6 +132,17 @@
   .sub { font-size:clamp(17px, 2vw, 21px); color:var(--inv-2); max-width:54ch; margin:24px auto 0; line-height:1.55; }
   .cta-row { display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap; }
   .cta-note { margin-top:16px; font-size:13px; color:var(--inv-2); }
+  /* Placeholder app-store badges — swap the spans for <a href> when the apps go live */
+  .store-row { margin-top:22px; display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .store-badges { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .store-badge { display:inline-flex; align-items:center; gap:10px; padding:9px 16px; border-radius:13px; border:1px solid var(--inv); background:var(--inv); color:var(--bg); cursor:default; }
+  .store-badge svg { width:21px; height:21px; flex:none; fill:currentColor; }
+  .store-badge .sb-txt { display:flex; flex-direction:column; line-height:1.1; text-align:left; }
+  .store-badge .sb-top { font-size:10px; font-weight:500; letter-spacing:.02em; opacity:.82; }
+  .store-badge .sb-name { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .store-caption { font-size:12px; color:var(--inv-2); letter-spacing:.02em; }
+  .hero .store-badge { background:#0a0a0a; color:#fff; border-color:#0a0a0a; }
+  .hero .store-caption { color:#57544e; }
 
   /* Hero mock */
   .stage { position:relative; margin:60px auto 0; max-width:880px; }
@@ -533,6 +544,20 @@
         <a class="btn btn-ghost" href="#features">See what it does →</a>
       </div>
       <p class="cta-note">One app across Mac, iPad, iPhone &amp; Apple Watch — and Android</p>
+      <!-- Placeholder store badges — swap the spans for <a href="…"> once the apps are live -->
+      <div class="store-row">
+        <div class="store-badges">
+          <span class="store-badge" role="img" aria-label="Download on the App Store — coming soon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.365 1.43c0 1.14-.42 2.2-1.13 2.99-.79.88-2.08 1.56-3.14 1.47-.13-1.09.42-2.24 1.09-2.97.76-.83 2.13-1.45 3.18-1.49zM20.5 17.02c-.52 1.2-.77 1.73-1.44 2.79-.93 1.48-2.25 3.32-3.88 3.34-1.45.01-1.82-.94-3.79-.93-1.97.01-2.38.95-3.83.93-1.63-.02-2.88-1.68-3.81-3.16-2.6-4.14-2.87-9-1.27-11.58 1.14-1.84 2.94-2.91 4.63-2.91 1.72 0 2.8.94 4.22.94 1.38 0 2.22-.94 4.21-.94 1.5 0 3.09.82 4.22 2.23-3.71 2.03-3.11 7.33.51 9.29z"/></svg>
+            <span class="sb-txt"><span class="sb-top">Download on the</span><span class="sb-name">App Store</span></span>
+          </span>
+          <span class="store-badge" role="img" aria-label="Get it on Google Play — coming soon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.5v19a1 1 0 0 0 1.5.87l16-9.5a1 1 0 0 0 0-1.74l-16-9.5A1 1 0 0 0 4 2.5z"/></svg>
+            <span class="sb-txt"><span class="sb-top">Get it on</span><span class="sb-name">Google Play</span></span>
+          </span>
+        </div>
+        <span class="store-caption">iOS &amp; Android apps coming soon</span>
+      </div>
     </div>
   </section>
 

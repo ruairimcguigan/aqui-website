@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Side Projects | Aqui",
-  description: "A few things we've built for fun outside client work.",
+  description: "A few things we've built outside of client work.",
 };
 
 const projects = [
   {
-    title: "Maestro",
+    title: "Maestro for Sonos",
     description:
       "A native iOS and Android app for controlling your Sonos speakers. Explore the site, privacy policy and support pages.",
     href: "/portfolio/maestro/",
@@ -25,7 +25,7 @@ export default function Portfolio() {
             Side Projects
           </h1>
           <p className="text-lg text-neutral-600 dark:text-neutral-400 md:pr-8 max-w-2xl">
-            A few things we&apos;ve built for fun outside client work.
+            A few things we&apos;ve built outside of client work.
           </p>
         </section>
 
@@ -47,7 +47,7 @@ export default function Portfolio() {
                     />
                   </div>
                 </div>
-                <h3 className="text-3xl mb-3 leading-snug font-bold tracking-tight group-hover:text-brand-blue transition-colors">
+                <h3 className="text-3xl mb-3 leading-snug font-bold tracking-tight text-neutral-900 dark:text-white group-hover:underline underline-offset-4 transition-colors">
                   {project.title}
                 </h3>
                 <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400">
