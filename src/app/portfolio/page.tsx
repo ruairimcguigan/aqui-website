@@ -2,15 +2,15 @@ import Container from "@/app/_components/container";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Portfolio | Aqui",
-  description: "Selected products and projects built by Aquidigital Ltd.",
+  title: "Side Projects | Aqui",
+  description: "A few things we've built for fun outside client work.",
 };
 
 const projects = [
   {
     title: "Maestro",
     description:
-      "A native iOS and Android app. Explore the product site, privacy policy and support pages.",
+      "A native iOS and Android app for controlling your Sonos speakers. Explore the site, privacy policy and support pages.",
     href: "/portfolio/maestro/",
     image: "/portfolio/maestro/assets/maestro-logo-512.png",
   },
@@ -22,10 +22,10 @@ export default function Portfolio() {
       <Container>
         <section className="mt-16 mb-20 md:mb-28">
           <h1 className="text-5xl md:text-8xl font-bold tracking-tighter leading-tight mb-6">
-            Portfolio
+            Side Projects
           </h1>
           <p className="text-lg text-neutral-600 dark:text-neutral-400 md:pr-8 max-w-2xl">
-            Selected products and projects we&apos;ve designed and built.
+            A few things we&apos;ve built for fun outside client work.
           </p>
         </section>
 
