@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Aqui | Digital Engineering",
   description: "Premium web and mobile software consultancy by Aquidigital Ltd.",
-  metadataBase: new URL("https://aqui-website.vercel.app"),
+  metadataBase: new URL("https://www.aquidigital.co.uk"),
   openGraph: {
     title: "Aqui | Digital Engineering",
     description:
