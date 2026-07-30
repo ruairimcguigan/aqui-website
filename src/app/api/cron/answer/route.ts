@@ -7,8 +7,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MODEL = process.env.COACH_MODEL || "claude-3-5-sonnet-latest";
-const MAX_PER_RUN = 5; // bound cost/time; backlog clears over subsequent runs
+const MODEL = process.env.COACH_MODEL || "claude-sonnet-4-6";
+const CONCURRENCY = 5; // answer up to this many at once; higher just needs headroom on rate limits
 
 function weekInfo(week: number): string {
   const w = PLAN.find((p) => p.week === week);
@@ -61,6 +61,20 @@ async function answerQuestion(q: Question, progress: Progress): Promise<string> 
   return text || "(no answer generated)";
 }
 
+// Run an async mapper over items with a bounded concurrency.
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < items.length) {
+      const idx = cursor++;
+      results[idx] = await fn(items[idx]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 async function handle(req: Request) {
   const url = new URL(req.url);
   if (!process.env.CRON_SECRET || url.searchParams.get("key") !== process.env.CRON_SECRET) {
@@ -86,19 +100,27 @@ async function handle(req: Request) {
     return NextResponse.json({ answered: 0, message: "No open questions." });
   }
 
-  const toAnswer = open.slice(0, MAX_PER_RUN);
+  // Answer every open question concurrently — total time ≈ one answer, not the sum.
+  type Outcome = { q: Question; ok: true; answer: string } | { q: Question; ok: false; error: string };
+  const outcomes = await mapLimit<Question, Outcome>(open, CONCURRENCY, async (q) => {
+    try {
+      const answer = await answerQuestion(q, progress);
+      return { q, ok: true, answer };
+    } catch (e) {
+      return { q, ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+  });
+
   const answeredWeeks: number[] = [];
   const errors: string[] = [];
-
-  for (const q of toAnswer) {
-    try {
-      const a = await answerQuestion(q, progress);
-      q.answer = a;
-      q.status = "answered";
-      q.answeredAt = Date.now();
-      answeredWeeks.push(q.week);
-    } catch (e) {
-      errors.push(`week ${q.week}: ${e instanceof Error ? e.message : String(e)}`);
+  for (const o of outcomes) {
+    if (o.ok) {
+      o.q.answer = o.answer;
+      o.q.status = "answered";
+      o.q.answeredAt = Date.now();
+      answeredWeeks.push(o.q.week);
+    } else {
+      errors.push(`week ${o.q.week}: ${o.error}`);
     }
   }
 
