@@ -70,6 +70,19 @@ npm run dev
 Without the two Upstash values locally, the UI still runs — it just shows a
 "storage isn't connected" note and won't persist until you add them (or deploy).
 
+## Questions & the twice-daily polling task
+
+Each week on the tracker has an "❓ Ask a question or flag an issue" box. Questions
+are stored in Redis under `aqui:tracker:questions` (via `/api/questions`) and shown
+under their week. A separate scheduled task polls that store twice a day, answers
+any `open` questions, writes the answer back (status → `answered`), and sends a push
+notification. The answer then appears under the question on the tracker.
+
+The scheduled task lives outside this repo (it's a Claude scheduled task). It needs
+the same Upstash REST credentials (`KV_REST_API_URL` / `KV_REST_API_TOKEN`) to read
+and write the questions key. No extra site configuration is required beyond the
+Redis store you already connected.
+
 ## Changing the password later
 Update `TRACKER_PASSWORD` in Vercel and redeploy. (Changing `TRACKER_SECRET`
 also works and has the side effect of logging out any existing session.)

@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
+import { getRedis, PROGRESS_KEY } from "@/lib/tracker/redis";
 import type { Progress } from "@/lib/tracker/plan";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const KEY = "aqui:tracker:progress";
-
-// Works with either env-var naming convention:
-//  - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (Upstash direct), or
-//  - KV_REST_API_URL / KV_REST_API_TOKEN (Vercel Marketplace Upstash integration).
-// Instantiated lazily so a missing store degrades gracefully rather than
-// crashing the route at import time.
-function getRedis(): Redis {
-  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
-  if (!url || !token) {
-    throw new Error("Redis REST credentials not configured");
-  }
-  return new Redis({ url, token });
-}
-
 export async function GET() {
   try {
-    const progress = (await getRedis().get<Progress>(KEY)) ?? {};
+    const progress = (await getRedis().get<Progress>(PROGRESS_KEY)) ?? {};
     return NextResponse.json({ progress });
   } catch {
     // Store not configured yet, or transient error — return empty so the UI
@@ -48,7 +32,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    await getRedis().set(KEY, progress);
+    await getRedis().set(PROGRESS_KEY, progress);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "store-unavailable" }, { status: 503 });

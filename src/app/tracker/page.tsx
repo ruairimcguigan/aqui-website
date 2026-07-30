@@ -8,6 +8,7 @@ import {
   STATUS_LABELS,
   phaseStyle,
   type Progress,
+  type Question,
   type WeekProgress,
   type WeekStatus,
 } from "@/lib/tracker/plan";
@@ -16,23 +17,62 @@ const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"]
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
+function AskBox({ week, onAsk }: { week: number; onAsk: (week: number, text: string) => Promise<boolean> }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (!text.trim() || busy) return;
+    setBusy(true);
+    const ok = await onAsk(week, text.trim());
+    setBusy(false);
+    if (ok) setText("");
+  }
+
+  return (
+    <div className="mt-2 flex gap-2">
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}
+        placeholder="❓ Ask a question or flag an issue about this week…"
+        className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+      />
+      <button
+        onClick={submit}
+        disabled={busy || !text.trim()}
+        className="shrink-0 rounded-md bg-brand-blue px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+      >
+        {busy ? "…" : "Ask"}
+      </button>
+    </div>
+  );
+}
+
 export default function TrackerPage() {
   const router = useRouter();
   const [progress, setProgress] = useState<Progress>({});
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storeWarning, setStoreWarning] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load saved progress on mount.
+  // Load saved progress + questions on mount.
   useEffect(() => {
     let active = true;
-    fetch("/api/progress")
-      .then((r) => r.json())
-      .then((data) => {
+    Promise.all([
+      fetch("/api/progress").then((r) => r.json()),
+      fetch("/api/questions").then((r) => r.json()),
+    ])
+      .then(([pData, qData]) => {
         if (!active) return;
-        setProgress(data.progress ?? {});
-        if (data.warning === "store-unavailable") setStoreWarning(true);
+        setProgress(pData.progress ?? {});
+        setQuestions(Array.isArray(qData.questions) ? qData.questions : []);
+        if (pData.warning === "store-unavailable") setStoreWarning(true);
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
@@ -70,6 +110,32 @@ export default function TrackerPage() {
     [scheduleSave]
   );
 
+  const askQuestion = useCallback(async (week: number, text: string): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/questions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ week, text }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.question) setQuestions((prev) => [data.question, ...prev]);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const questionsByWeek = useMemo(() => {
+    const map = new Map<number, Question[]>();
+    for (const q of questions) {
+      const arr = map.get(q.week) ?? [];
+      arr.push(q);
+      map.set(q.week, arr);
+    }
+    return map;
+  }, [questions]);
+
   const stats = useMemo(() => {
     const total = PLAN.length;
     let done = 0;
@@ -81,6 +147,11 @@ export default function TrackerPage() {
     }
     return { total, done, hours, pct: total ? Math.round((done / total) * 100) : 0 };
   }, [progress]);
+
+  const openQuestionCount = useMemo(
+    () => questions.filter((q) => q.status === "open").length,
+    [questions]
+  );
 
   async function logout() {
     await fetch("/api/login", { method: "DELETE" }).catch(() => {});
@@ -101,7 +172,7 @@ export default function TrackerPage() {
                 AI Engineer Tracker
               </h1>
               <p className="mt-2 text-slate-500 dark:text-slate-400">
-                28 weeks · ~10 hrs/week · start Mon 3 Aug 2026 → job-ready ~Feb 2027
+                28 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027
               </p>
             </div>
             <button
@@ -131,6 +202,12 @@ export default function TrackerPage() {
                 style={{ width: `${stats.pct}%` }}
               />
             </div>
+            {openQuestionCount > 0 && (
+              <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                {openQuestionCount} question{openQuestionCount === 1 ? "" : "s"} awaiting an answer —
+                these are picked up automatically twice a day.
+              </p>
+            )}
             {storeWarning && (
               <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
                 Storage isn&apos;t connected yet — changes won&apos;t be saved. Add the Vercel
@@ -147,6 +224,7 @@ export default function TrackerPage() {
               const isDone = p.status === "done";
               const showPhase = w.phase !== lastPhase;
               lastPhase = w.phase;
+              const weekQuestions = questionsByWeek.get(w.week) ?? [];
 
               return (
                 <div key={w.week}>
@@ -156,7 +234,7 @@ export default function TrackerPage() {
                     </h2>
                   )}
                   <div
-                    className={`rounded-xl border border-l-4 ${ps.bar} border-slate-200 bg-white p-4 transition dark:border-slate-700 dark:border-l-4 dark:bg-slate-800/60 ${
+                    className={`rounded-xl border border-l-4 ${ps.bar} border-slate-200 bg-white p-4 transition dark:border-slate-700 dark:bg-slate-800/60 ${
                       isDone ? "opacity-70" : ""
                     }`}
                   >
@@ -221,6 +299,32 @@ export default function TrackerPage() {
                         className="min-w-[8rem] flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                       />
                     </div>
+
+                    {/* Questions & answers */}
+                    {weekQuestions.length > 0 && (
+                      <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
+                        {weekQuestions.map((q) => (
+                          <div key={q.id} className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-900/50">
+                            <p className="font-medium text-slate-800 dark:text-slate-200">
+                              <span className="mr-1">❓</span>
+                              {q.text}
+                            </p>
+                            {q.status === "answered" && q.answer ? (
+                              <p className="mt-1.5 whitespace-pre-wrap text-slate-600 dark:text-slate-300">
+                                <span className="mr-1 font-semibold text-brand-blue">Answer:</span>
+                                {q.answer}
+                              </p>
+                            ) : (
+                              <p className="mt-1 text-xs italic text-slate-400">
+                                Awaiting an answer — picked up twice daily.
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <AskBox week={w.week} onAsk={askQuestion} />
                   </div>
                 </div>
               );
