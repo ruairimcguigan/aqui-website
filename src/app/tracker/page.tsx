@@ -172,7 +172,7 @@ export default function TrackerPage() {
                 AI Engineer Tracker
               </h1>
               <p className="mt-2 text-slate-500 dark:text-slate-400">
-                28 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027
+                31 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027
               </p>
             </div>
             <button

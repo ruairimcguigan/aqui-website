@@ -51,7 +51,8 @@ export const PHASE_STYLES: { match: string; bar: string; chip: string }[] = [
   { match: "Phase 2", bar: "border-l-orange-400", chip: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
   { match: "Phase 3", bar: "border-l-violet-400", chip: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" },
   { match: "Phase 4", bar: "border-l-cyan-400", chip: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300" },
-  { match: "Phase 5", bar: "border-l-pink-400", chip: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300" },
+  { match: "Phase 5", bar: "border-l-amber-400", chip: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+  { match: "Phase 6", bar: "border-l-pink-400", chip: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300" },
 ];
 
 export function phaseStyle(phase: string) {
@@ -310,7 +311,37 @@ export const PLAN: PlanWeek[] = [
   {
     week: 26,
     start: "Fri 22 Jan 2027",
-    phase: "Phase 5: Launch",
+    phase: "Phase 5: AI Systems Design",
+    focus: "Architecture & tradeoffs",
+    tasks:
+      "Learn how AI systems are actually structured: the reference architectures for RAG and agentic systems — ingestion, retrieval, generation, evaluation, feedback loops, guardrails, observability — and how the pieces fit together. Internalise the quality/latency/cost tradeoff triangle and how to reason about it out loud. Study 2–3 real production architecture write-ups from engineering blogs and sketch each one.",
+    milestone: "Can whiteboard a RAG system end-to-end",
+    targetHrs: 10,
+  },
+  {
+    week: 27,
+    start: "Fri 29 Jan 2027",
+    phase: "Phase 5: AI Systems Design",
+    focus: "Scaling & retrieval at scale",
+    tasks:
+      "Go deep on the hard parts: vector DB selection, hybrid (keyword + semantic) search and re-ranking, index freshness, and multi-tenancy; plus scaling patterns like semantic caching, model routing and cascades, batching, streaming, and graceful fallbacks. Practice back-of-envelope sizing for tokens, cost, and QPS. Then write a proper design doc for your own flagship RAG app.",
+    milestone: "🎯 Design doc for your flagship system",
+    targetHrs: 10,
+  },
+  {
+    week: 28,
+    start: "Fri 5 Feb 2027",
+    phase: "Phase 5: AI Systems Design",
+    focus: "System-design interviews",
+    tasks:
+      "Practice the interview format that's now standard for AI roles: design systems out loud against a prompt — 'design an AI customer-support assistant', 'design a code-review copilot', 'design a document-Q&A platform at scale'. Do 3–4 timeboxed mock designs covering requirements, architecture, tradeoffs, scaling, evaluation, and failure modes. Your 13 years of general system-design instinct is the real edge here — you're just layering the AI-specific parts on top.",
+    milestone: "3–4 AI system-design mocks done",
+    targetHrs: 10,
+  },
+  {
+    week: 29,
+    start: "Fri 12 Feb 2027",
+    phase: "Phase 6: Launch",
     focus: "Portfolio polish",
     tasks:
       "Finalise your three portfolio projects: strong READMEs, an architecture diagram for each, your evaluation results, and an honest 'limitations and next steps' section (a real seniority signal). Make your GitHub profile tell one clear story about the engineer you've become.",
@@ -318,9 +349,9 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 27,
-    start: "Fri 29 Jan 2027",
-    phase: "Phase 5: Launch",
+    week: 30,
+    start: "Fri 19 Feb 2027",
+    phase: "Phase 6: Launch",
     focus: "Visibility",
     tasks:
       "Write one or two short posts (blog or LinkedIn) on what you built and learned — a walkthrough of your RAG evaluations, or how you approached agents. Public work compounds: it's discovery, credibility, and interview material all at once, with very little extra effort.",
@@ -328,9 +359,9 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 28,
-    start: "Fri 5 Feb 2027",
-    phase: "Phase 5: Launch",
+    week: 31,
+    start: "Fri 26 Feb 2027",
+    phase: "Phase 6: Launch",
     focus: "Go to market",
     tasks:
       "Reframe your CV and LinkedIn around 'Software Engineer → AI Engineer', with your projects front and centre. Most importantly, volunteer for AI work at your current job — the fastest, lowest-risk route in — and start applying to AI-first teams and internal AI roles.",
