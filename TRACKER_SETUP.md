@@ -70,18 +70,34 @@ npm run dev
 Without the two Upstash values locally, the UI still runs — it just shows a
 "storage isn't connected" note and won't persist until you add them (or deploy).
 
-## Questions & the twice-daily polling task
+## Questions & the answering endpoint
 
 Each week on the tracker has an "❓ Ask a question or flag an issue" box. Questions
 are stored in Redis under `aqui:tracker:questions` (via `/api/questions`) and shown
-under their week. A separate scheduled task polls that store twice a day, answers
-any `open` questions, writes the answer back (status → `answered`), and sends a push
-notification. The answer then appears under the question on the tracker.
+under their week.
 
-The scheduled task lives outside this repo (it's a Claude scheduled task). It needs
-the same Upstash REST credentials (`KV_REST_API_URL` / `KV_REST_API_TOKEN`) to read
-and write the questions key. No extra site configuration is required beyond the
-Redis store you already connected.
+The answering runs **server-side on Vercel** (where Redis is reachable) via
+`GET/POST /api/cron/answer?key=CRON_SECRET`. On each call it reads the open
+questions plus your progress, asks Claude (via the Anthropic API) to answer each
+using the coaching context in `src/lib/tracker/coach-context.ts`, writes the answers
+back (status → `answered`), and returns a summary. It answers up to 5 per run;
+backlog clears over subsequent runs.
+
+A Claude **scheduled task** (outside this repo) calls that URL twice a day and pushes
+a phone notification with the summary. It only needs the public URL + the secret —
+it never touches Redis directly.
+
+### Extra environment variables for this feature (Vercel → Settings → Env Vars)
+
+| Name | Value |
+|---|---|
+| `ANTHROPIC_API_KEY` | your Anthropic API key (the one you set up in Week 1) |
+| `CRON_SECRET` | a random string that guards the endpoint (`openssl rand -hex 16`) |
+| `COACH_MODEL` | *(optional)* a Claude model id; defaults to `claude-3-5-sonnet-latest` |
+
+To edit what the coach knows about you, change `coach-context.ts` and redeploy.
+
+## Changing the password later
 
 ## Changing the password later
 Update `TRACKER_PASSWORD` in Vercel and redeploy. (Changing `TRACKER_SECRET`
