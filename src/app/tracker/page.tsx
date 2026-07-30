@@ -1,0 +1,237 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Container from "@/app/_components/container";
+import {
+  PLAN,
+  STATUS_LABELS,
+  phaseStyle,
+  type Progress,
+  type WeekProgress,
+  type WeekStatus,
+} from "@/lib/tracker/plan";
+
+const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
+
+type SaveState = "idle" | "saving" | "saved" | "error";
+
+export default function TrackerPage() {
+  const router = useRouter();
+  const [progress, setProgress] = useState<Progress>({});
+  const [loaded, setLoaded] = useState(false);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [storeWarning, setStoreWarning] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load saved progress on mount.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/progress")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!active) return;
+        setProgress(data.progress ?? {});
+        if (data.warning === "store-unavailable") setStoreWarning(true);
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const scheduleSave = useCallback((next: Progress) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    setSaveState("saving");
+    saveTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/progress", {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ progress: next }),
+        });
+        setSaveState(res.ok ? "saved" : "error");
+      } catch {
+        setSaveState("error");
+      }
+    }, 600);
+  }, []);
+
+  const patchWeek = useCallback(
+    (week: number, patch: Partial<WeekProgress>) => {
+      setProgress((prev) => {
+        const current = prev[week] ?? { status: "not-started" as WeekStatus };
+        const next: Progress = { ...prev, [week]: { ...current, ...patch } };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const stats = useMemo(() => {
+    const total = PLAN.length;
+    let done = 0;
+    let hours = 0;
+    for (const w of PLAN) {
+      const p = progress[w.week];
+      if (p?.status === "done") done += 1;
+      if (typeof p?.actualHrs === "number") hours += p.actualHrs;
+    }
+    return { total, done, hours, pct: total ? Math.round((done / total) * 100) : 0 };
+  }, [progress]);
+
+  async function logout() {
+    await fetch("/api/login", { method: "DELETE" }).catch(() => {});
+    router.push("/tracker/login");
+    router.refresh();
+  }
+
+  let lastPhase = "";
+
+  return (
+    <main className="pb-24">
+      <Container>
+        <div className="mx-auto max-w-3xl">
+          {/* Header */}
+          <div className="flex items-start justify-between pt-12">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
+                AI Engineer Tracker
+              </h1>
+              <p className="mt-2 text-slate-500 dark:text-slate-400">
+                28 weeks · ~10 hrs/week · start Mon 3 Aug 2026 → job-ready ~Feb 2027
+              </p>
+            </div>
+            <button
+              onClick={logout}
+              className="mt-2 shrink-0 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+            >
+              Log out
+            </button>
+          </div>
+
+          {/* Progress card (sticky) */}
+          <div className="sticky top-3 z-10 mt-8 rounded-xl border border-slate-200 bg-white/90 p-5 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
+            <div className="flex items-baseline justify-between">
+              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {stats.pct}% complete
+              </span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                {stats.done} / {stats.total} weeks · {stats.hours} hrs logged
+                {saveState === "saving" && " · saving…"}
+                {saveState === "saved" && " · saved ✓"}
+                {saveState === "error" && " · save failed"}
+              </span>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div
+                className="h-full rounded-full bg-brand-blue transition-all duration-500"
+                style={{ width: `${stats.pct}%` }}
+              />
+            </div>
+            {storeWarning && (
+              <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
+                Storage isn&apos;t connected yet — changes won&apos;t be saved. Add the Vercel
+                store and env vars (see setup notes), then reload.
+              </p>
+            )}
+          </div>
+
+          {/* Weeks */}
+          <div className="mt-8 space-y-3">
+            {PLAN.map((w) => {
+              const p = progress[w.week] ?? { status: "not-started" as WeekStatus };
+              const ps = phaseStyle(w.phase);
+              const isDone = p.status === "done";
+              const showPhase = w.phase !== lastPhase;
+              lastPhase = w.phase;
+
+              return (
+                <div key={w.week}>
+                  {showPhase && (
+                    <h2 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                      {w.phase}
+                    </h2>
+                  )}
+                  <div
+                    className={`rounded-xl border border-l-4 ${ps.bar} border-slate-200 bg-white p-4 transition dark:border-slate-700 dark:border-l-4 dark:bg-slate-800/60 ${
+                      isDone ? "opacity-70" : ""
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        Week {w.week}
+                      </span>
+                      <span className="text-xs text-slate-400">{w.start}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.chip}`}>
+                        {w.focus}
+                      </span>
+                    </div>
+
+                    <p
+                      className={`mt-2 text-slate-700 dark:text-slate-300 ${
+                        isDone ? "line-through decoration-slate-400" : ""
+                      }`}
+                    >
+                      {w.tasks}
+                    </p>
+
+                    {w.milestone && (
+                      <p className="mt-1 text-sm font-medium text-brand-blue">{w.milestone}</p>
+                    )}
+
+                    {/* Controls */}
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <select
+                        value={p.status}
+                        onChange={(e) => patchWeek(w.week, { status: e.target.value as WeekStatus })}
+                        className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                      >
+                        {STATUSES.map((s) => (
+                          <option key={s} value={s}>
+                            {STATUS_LABELS[s]}
+                          </option>
+                        ))}
+                      </select>
+
+                      <label className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        Hrs
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.5}
+                          value={p.actualHrs ?? ""}
+                          onChange={(e) =>
+                            patchWeek(w.week, {
+                              actualHrs: e.target.value === "" ? undefined : Number(e.target.value),
+                            })
+                          }
+                          className="w-16 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                          placeholder={String(w.targetHrs)}
+                        />
+                      </label>
+
+                      <input
+                        type="text"
+                        value={p.notes ?? ""}
+                        onChange={(e) => patchWeek(w.week, { notes: e.target.value })}
+                        placeholder="Notes…"
+                        className="min-w-[8rem] flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {!loaded && (
+            <p className="mt-8 text-center text-slate-400">Loading your progress…</p>
+          )}
+        </div>
+      </Container>
+    </main>
+  );
+}
