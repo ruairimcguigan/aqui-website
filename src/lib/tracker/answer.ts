@@ -1,20 +1,22 @@
 import { COACH_CONTEXT } from "./coach-context";
-import { PLAN, type Question, type Progress } from "./plan";
+import { type PlanWeek, type Question, type Progress } from "./plan";
 
 // Shared question-answering used by both the on-submit path (/api/questions)
-// and the periodic backstop (/api/cron/answer).
+// and the periodic backstop (/api/cron/answer). `plan` is the learner's active
+// roadmap (personalized track if set, otherwise the default) so week context is
+// always correct.
 
 const MODEL = process.env.COACH_MODEL || "claude-sonnet-4-6";
 
-export function weekInfo(week: number): string {
-  const w = PLAN.find((p) => p.week === week);
+export function weekInfo(week: number, plan: PlanWeek[]): string {
+  const w = plan.find((p) => p.week === week);
   if (!w) return `Week ${week}.`;
   return `Week ${w.week} (${w.start}) — ${w.phase} — focus: ${w.focus}. This week's tasks: ${w.tasks}${
     w.milestone ? ` Milestone: ${w.milestone}.` : ""
   }`;
 }
 
-export async function answerQuestion(q: Question, progress: Progress): Promise<string> {
+export async function answerQuestion(q: Question, progress: Progress, plan: PlanWeek[]): Promise<string> {
   const wp = progress[q.week];
   const progressNote = wp
     ? `His logged status for week ${q.week}: ${wp.status}${wp.actualHrs ? `, ${wp.actualHrs}h` : ""}${
@@ -23,7 +25,8 @@ export async function answerQuestion(q: Question, progress: Progress): Promise<s
     : `He hasn't logged progress for week ${q.week} yet.`;
 
   const system = `${COACH_CONTEXT}\n\nContext for THIS question (tagged to a week):\n${weekInfo(
-    q.week
+    q.week,
+    plan
   )}\n${progressNote}\n\nAnswer his question directly and practically in a few short paragraphs. No preamble, no sign-off.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {

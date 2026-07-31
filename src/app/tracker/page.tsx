@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Container from "@/app/_components/container";
+import Link from "next/link";
 import {
   PLAN,
   STATUS_LABELS,
@@ -12,6 +13,7 @@ import {
   type WeekProgress,
   type WeekStatus,
 } from "@/lib/tracker/plan";
+import { generatePlan, getTrack, estimateMonths, type OnboardingConfig } from "@/lib/tracker/tracks";
 
 const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
 
@@ -53,6 +55,7 @@ export default function TrackerPage() {
   const router = useRouter();
   const [progress, setProgress] = useState<Progress>({});
   const [questions, setQuestions] = useState<UIQuestion[]>([]);
+  const [config, setConfig] = useState<OnboardingConfig | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storeWarning, setStoreWarning] = useState(false);
@@ -63,11 +66,13 @@ export default function TrackerPage() {
     Promise.all([
       fetch("/api/progress").then((r) => r.json()),
       fetch("/api/questions").then((r) => r.json()),
+      fetch("/api/config").then((r) => r.json()),
     ])
-      .then(([pData, qData]) => {
+      .then(([pData, qData, cData]) => {
         if (!active) return;
         setProgress(pData.progress ?? {});
         setQuestions(Array.isArray(qData.questions) ? qData.questions : []);
+        setConfig(cData.config ?? null);
         if (pData.warning === "store-unavailable") setStoreWarning(true);
         setLoaded(true);
       })
@@ -141,17 +146,19 @@ export default function TrackerPage() {
     return map;
   }, [questions]);
 
+  const activePlan = useMemo(() => (config ? generatePlan(config) : PLAN), [config]);
+
   const stats = useMemo(() => {
-    const total = PLAN.length;
+    const total = activePlan.length;
     let done = 0;
     let hours = 0;
-    for (const w of PLAN) {
+    for (const w of activePlan) {
       const p = progress[w.week];
       if (p?.status === "done") done += 1;
       if (typeof p?.actualHrs === "number") hours += p.actualHrs;
     }
     return { total, done, hours, pct: total ? Math.round((done / total) * 100) : 0 };
-  }, [progress]);
+  }, [progress, activePlan]);
 
   async function logout() {
     await fetch("/api/login", { method: "DELETE" }).catch(() => {});
@@ -167,10 +174,22 @@ export default function TrackerPage() {
         <div className="mx-auto max-w-3xl">
           <div className="flex items-start justify-between pt-12">
             <div>
-              <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">AI Engineer Tracker</h1>
+              <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
+                {config ? getTrack(config.track).name : "AI Engineer"} Tracker
+              </h1>
               <p className="mt-2 text-slate-500 dark:text-slate-400">
-                31 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027
+                {config
+                  ? `${activePlan.length} weeks · ~${config.hours} hrs/week · starts ${
+                      activePlan[0]?.start ?? ""
+                    } → job-ready in ~${estimateMonths(config)} months`
+                  : "31 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027"}
               </p>
+              <Link
+                href="/tracker/onboarding"
+                className="mt-2 inline-block text-sm font-medium text-brand-blue hover:underline"
+              >
+                {config ? "Change track / adjust plan →" : "Personalize your roadmap →"}
+              </Link>
             </div>
             <button
               onClick={logout}
@@ -201,7 +220,7 @@ export default function TrackerPage() {
           </div>
 
           <div className="mt-8 space-y-3">
-            {PLAN.map((w) => {
+            {activePlan.map((w) => {
               const p = progress[w.week] ?? { status: "not-started" as WeekStatus };
               const ps = phaseStyle(w.phase);
               const isDone = p.status === "done";

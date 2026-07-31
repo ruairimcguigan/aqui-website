@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getRedis, QUESTIONS_KEY, PROGRESS_KEY } from "@/lib/tracker/redis";
+import { getRedis, QUESTIONS_KEY, PROGRESS_KEY, CONFIG_KEY } from "@/lib/tracker/redis";
 import { answerQuestion } from "@/lib/tracker/answer";
-import type { Question, Progress } from "@/lib/tracker/plan";
+import { PLAN, type Question, type Progress } from "@/lib/tracker/plan";
+import { generatePlan, type OnboardingConfig } from "@/lib/tracker/tracks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +62,9 @@ export async function POST(req: Request) {
   try {
     if (process.env.ANTHROPIC_API_KEY) {
       const progress = (await getRedis().get<Progress>(PROGRESS_KEY)) ?? {};
-      const answer = await answerQuestion(question, progress);
+      const config = await getRedis().get<OnboardingConfig>(CONFIG_KEY);
+      const plan = config ? generatePlan(config) : PLAN;
+      const answer = await answerQuestion(question, progress, plan);
       question.answer = answer;
       question.status = "answered";
       question.answeredAt = Date.now();

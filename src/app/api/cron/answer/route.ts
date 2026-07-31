@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getRedis, QUESTIONS_KEY, PROGRESS_KEY } from "@/lib/tracker/redis";
+import { getRedis, QUESTIONS_KEY, PROGRESS_KEY, CONFIG_KEY } from "@/lib/tracker/redis";
 import { answerQuestion } from "@/lib/tracker/answer";
-import type { Question, Progress } from "@/lib/tracker/plan";
+import { PLAN, type Question, type Progress, type PlanWeek } from "@/lib/tracker/plan";
+import { generatePlan, type OnboardingConfig } from "@/lib/tracker/tracks";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,10 +35,13 @@ async function handle(req: Request) {
 
   let questions: Question[];
   let progress: Progress;
+  let plan: PlanWeek[] = PLAN;
   try {
     const redis = getRedis();
     questions = (await redis.get<Question[]>(QUESTIONS_KEY)) ?? [];
     progress = (await redis.get<Progress>(PROGRESS_KEY)) ?? {};
+    const config = await redis.get<OnboardingConfig>(CONFIG_KEY);
+    if (config) plan = generatePlan(config);
   } catch {
     return NextResponse.json({ error: "store-unavailable" }, { status: 503 });
   }
@@ -51,7 +55,7 @@ async function handle(req: Request) {
   type Outcome = { q: Question; ok: true; answer: string } | { q: Question; ok: false; error: string };
   const outcomes = await mapLimit<Question, Outcome>(open, CONCURRENCY, async (q) => {
     try {
-      const answer = await answerQuestion(q, progress);
+      const answer = await answerQuestion(q, progress, plan);
       return { q, ok: true, answer };
     } catch (e) {
       return { q, ok: false, error: e instanceof Error ? e.message : String(e) };

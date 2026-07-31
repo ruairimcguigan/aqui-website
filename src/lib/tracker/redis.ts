@@ -3,6 +3,7 @@ import { Redis } from "@upstash/redis";
 // Redis keys used by the tracker.
 export const PROGRESS_KEY = "aqui:tracker:progress";
 export const QUESTIONS_KEY = "aqui:tracker:questions";
+export const CONFIG_KEY = "aqui:tracker:config";
 
 // Works with either env-var naming convention:
 //  - UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (Upstash direct), or
