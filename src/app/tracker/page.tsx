@@ -8,6 +8,7 @@ import {
   PLAN,
   STATUS_LABELS,
   phaseStyle,
+  splitActions,
   type Progress,
   type Question,
   type WeekProgress,
@@ -21,19 +22,24 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 type UIQuestion = Question & { pending?: boolean };
 
 // One collapsible question + answer.
-function QAItem({ q }: { q: UIQuestion }) {
+function QAItem({ q, onDelete }: { q: UIQuestion; onDelete: (id: string) => void }) {
   const answered = q.status === "answered" && !!q.answer;
   const [open, setOpen] = useState(!answered); // answered ones start collapsed
   return (
     <div className="rounded-lg bg-slate-50 dark:bg-slate-900/50">
-      <button
-        onClick={() => answered && setOpen((o) => !o)}
-        className={`flex w-full items-start gap-2 p-3 text-left text-sm ${answered ? "cursor-pointer" : "cursor-default"}`}
-      >
-        <span className="mt-0.5">❓</span>
-        <span className="flex-1 font-medium text-slate-800 dark:text-slate-200">{q.text}</span>
+      <div className="flex items-start gap-2 p-3 text-sm">
+        <button
+          onClick={() => answered && setOpen((o) => !o)}
+          className={`flex flex-1 items-start gap-2 text-left ${answered ? "cursor-pointer" : "cursor-default"}`}
+        >
+          <span className="mt-0.5">❓</span>
+          <span className="flex-1 font-medium text-slate-800 dark:text-slate-200">{q.text}</span>
+        </button>
         {answered ? (
-          <span className="mt-0.5 shrink-0 text-slate-400 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }}>
+          <span
+            className="mt-0.5 shrink-0 text-slate-400 transition-transform"
+            style={{ transform: open ? "rotate(90deg)" : "none" }}
+          >
             ▶
           </span>
         ) : q.pending ? (
@@ -41,11 +47,17 @@ function QAItem({ q }: { q: UIQuestion }) {
         ) : (
           <span className="mt-0.5 shrink-0 text-xs italic text-slate-400">Awaiting</span>
         )}
-      </button>
+        <button
+          onClick={() => onDelete(q.id)}
+          title="Delete question"
+          aria-label="Delete question"
+          className="mt-0.5 shrink-0 text-slate-300 transition hover:text-red-500 dark:text-slate-600 dark:hover:text-red-400"
+        >
+          ✕
+        </button>
+      </div>
       {answered && open && (
-        <p className="whitespace-pre-wrap px-3 pb-3 pl-9 text-sm text-slate-600 dark:text-slate-300">
-          {q.answer}
-        </p>
+        <p className="whitespace-pre-wrap px-3 pb-3 pl-9 text-sm text-slate-600 dark:text-slate-300">{q.answer}</p>
       )}
     </div>
   );
@@ -134,6 +146,31 @@ export default function TrackerPage() {
         setQuestions((prev) => prev.map((q) => (q.id === tempId ? { ...q, pending: false } : q)));
       }
     })();
+  }, []);
+
+  const toggleAction = useCallback(
+    (week: number, idx: number) => {
+      setProgress((prev) => {
+        const cur = prev[week] ?? { status: "not-started" as WeekStatus };
+        const set = new Set(cur.actionsDone ?? []);
+        if (set.has(idx)) set.delete(idx);
+        else set.add(idx);
+        const next: Progress = {
+          ...prev,
+          [week]: { ...cur, actionsDone: Array.from(set).sort((a, b) => a - b) },
+        };
+        scheduleSave(next);
+        return next;
+      });
+    },
+    [scheduleSave]
+  );
+
+  const deleteQuestion = useCallback((id: string) => {
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+    if (!id.startsWith("temp-")) {
+      fetch("/api/questions?id=" + encodeURIComponent(id), { method: "DELETE" }).catch(() => {});
+    }
   }, []);
 
   const questionsByWeek = useMemo(() => {
@@ -248,11 +285,42 @@ export default function TrackerPage() {
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.chip}`}>{w.focus}</span>
                     </div>
 
-                    <p className={`mt-2 text-slate-700 dark:text-slate-300 ${isDone ? "line-through decoration-slate-400" : ""}`}>
-                      {w.tasks}
-                    </p>
+                    {(() => {
+                      const actions = splitActions(w.tasks);
+                      const doneSet = new Set(p.actionsDone ?? []);
+                      return (
+                        <>
+                          <ul className="mt-2 space-y-1.5">
+                            {actions.map((a, i) => {
+                              const done = doneSet.has(i);
+                              return (
+                                <li
+                                  key={i}
+                                  onClick={() => toggleAction(w.week, i)}
+                                  className="flex cursor-pointer items-start gap-2 text-sm text-slate-700 dark:text-slate-300"
+                                >
+                                  <span
+                                    className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded border text-[10px] font-bold ${
+                                      done
+                                        ? "border-brand-blue bg-brand-blue text-white"
+                                        : "border-slate-300 dark:border-slate-600"
+                                    }`}
+                                  >
+                                    {done ? "✓" : ""}
+                                  </span>
+                                  <span className={done ? "line-through decoration-slate-400" : ""}>{a}</span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          <p className="mt-1.5 text-xs text-slate-400">
+                            {doneSet.size}/{actions.length} actions done
+                          </p>
+                        </>
+                      );
+                    })()}
 
-                    {w.milestone && <p className="mt-1 text-sm font-medium text-brand-blue">{w.milestone}</p>}
+                    {w.milestone && <p className="mt-2 text-sm font-medium text-brand-blue">{w.milestone}</p>}
 
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <select
@@ -294,7 +362,7 @@ export default function TrackerPage() {
                     {weekQuestions.length > 0 && (
                       <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
                         {weekQuestions.map((q) => (
-                          <QAItem key={q.id} q={q} />
+                          <QAItem key={q.id} q={q} onDelete={deleteQuestion} />
                         ))}
                       </div>
                     )}

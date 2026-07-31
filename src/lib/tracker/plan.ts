@@ -17,6 +17,16 @@ export interface WeekProgress {
   status: WeekStatus;
   actualHrs?: number;
   notes?: string;
+  actionsDone?: number[]; // indices of completed actions within the week
+}
+
+// Split a week's task prose into discrete, checkable actions.
+export function splitActions(tasks: string): string[] {
+  return tasks
+    .split(/\.\s+(?=[A-Z0-9“"'])/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => (/[.!?]$/.test(s) ? s : s + "."));
 }
 
 // Keyed by week number (as string).

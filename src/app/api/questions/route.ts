@@ -76,3 +76,19 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ ok: true, question });
 }
+
+// Delete a question by id: DELETE /api/questions?id=...
+export async function DELETE(req: Request) {
+  const id = new URL(req.url).searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
+  try {
+    const all = await readAll();
+    const next = all.filter((q) => q.id !== id);
+    await getRedis().set(QUESTIONS_KEY, next);
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ error: "store-unavailable" }, { status: 503 });
+  }
+}
