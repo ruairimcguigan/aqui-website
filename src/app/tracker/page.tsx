@@ -16,38 +16,35 @@ import {
 const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+type UIQuestion = Question & { pending?: boolean };
 
-function AskBox({ week, onAsk }: { week: number; onAsk: (week: number, text: string) => Promise<boolean> }) {
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  async function submit() {
-    if (!text.trim() || busy) return;
-    setBusy(true);
-    const ok = await onAsk(week, text.trim());
-    setBusy(false);
-    if (ok) setText("");
-  }
-
+// One collapsible question + answer.
+function QAItem({ q }: { q: UIQuestion }) {
+  const answered = q.status === "answered" && !!q.answer;
+  const [open, setOpen] = useState(!answered); // answered ones start collapsed
   return (
-    <div className="mt-2 flex gap-2">
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") submit();
-        }}
-        placeholder="❓ Ask a question or flag an issue about this week…"
-        className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-      />
+    <div className="rounded-lg bg-slate-50 dark:bg-slate-900/50">
       <button
-        onClick={submit}
-        disabled={busy || !text.trim()}
-        className="shrink-0 rounded-md bg-brand-blue px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+        onClick={() => answered && setOpen((o) => !o)}
+        className={`flex w-full items-start gap-2 p-3 text-left text-sm ${answered ? "cursor-pointer" : "cursor-default"}`}
       >
-        {busy ? "…" : "Ask"}
+        <span className="mt-0.5">❓</span>
+        <span className="flex-1 font-medium text-slate-800 dark:text-slate-200">{q.text}</span>
+        {answered ? (
+          <span className="mt-0.5 shrink-0 text-slate-400 transition-transform" style={{ transform: open ? "rotate(90deg)" : "none" }}>
+            ▶
+          </span>
+        ) : q.pending ? (
+          <span className="mt-0.5 shrink-0 text-xs italic text-brand-blue">Answering…</span>
+        ) : (
+          <span className="mt-0.5 shrink-0 text-xs italic text-slate-400">Awaiting</span>
+        )}
       </button>
+      {answered && open && (
+        <p className="whitespace-pre-wrap px-3 pb-3 pl-9 text-sm text-slate-600 dark:text-slate-300">
+          {q.answer}
+        </p>
+      )}
     </div>
   );
 }
@@ -55,13 +52,12 @@ function AskBox({ week, onAsk }: { week: number; onAsk: (week: number, text: str
 export default function TrackerPage() {
   const router = useRouter();
   const [progress, setProgress] = useState<Progress>({});
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<UIQuestion[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storeWarning, setStoreWarning] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load saved progress + questions on mount.
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -110,24 +106,33 @@ export default function TrackerPage() {
     [scheduleSave]
   );
 
-  const askQuestion = useCallback(async (week: number, text: string): Promise<boolean> => {
-    try {
-      const res = await fetch("/api/questions", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ week, text }),
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      if (data.question) setQuestions((prev) => [data.question, ...prev]);
-      return true;
-    } catch {
-      return false;
-    }
+  // Optimistic ask: show the question immediately (answering), then swap in the
+  // real answer when the server responds — answered on submit, usually seconds.
+  const askQuestion = useCallback((week: number, text: string) => {
+    const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+    const optimistic: UIQuestion = { id: tempId, week, text, status: "open", createdAt: Date.now(), pending: true };
+    setQuestions((prev) => [optimistic, ...prev]);
+    (async () => {
+      try {
+        const res = await fetch("/api/questions", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ week, text }),
+        });
+        const data = await res.json();
+        if (res.ok && data.question) {
+          setQuestions((prev) => prev.map((q) => (q.id === tempId ? data.question : q)));
+        } else {
+          setQuestions((prev) => prev.map((q) => (q.id === tempId ? { ...q, pending: false } : q)));
+        }
+      } catch {
+        setQuestions((prev) => prev.map((q) => (q.id === tempId ? { ...q, pending: false } : q)));
+      }
+    })();
   }, []);
 
   const questionsByWeek = useMemo(() => {
-    const map = new Map<number, Question[]>();
+    const map = new Map<number, UIQuestion[]>();
     for (const q of questions) {
       const arr = map.get(q.week) ?? [];
       arr.push(q);
@@ -148,11 +153,6 @@ export default function TrackerPage() {
     return { total, done, hours, pct: total ? Math.round((done / total) * 100) : 0 };
   }, [progress]);
 
-  const openQuestionCount = useMemo(
-    () => questions.filter((q) => q.status === "open").length,
-    [questions]
-  );
-
   async function logout() {
     await fetch("/api/login", { method: "DELETE" }).catch(() => {});
     router.push("/tracker/login");
@@ -165,12 +165,9 @@ export default function TrackerPage() {
     <main className="pb-24">
       <Container>
         <div className="mx-auto max-w-3xl">
-          {/* Header */}
           <div className="flex items-start justify-between pt-12">
             <div>
-              <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">
-                AI Engineer Tracker
-              </h1>
+              <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">AI Engineer Tracker</h1>
               <p className="mt-2 text-slate-500 dark:text-slate-400">
                 31 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027
               </p>
@@ -183,12 +180,9 @@ export default function TrackerPage() {
             </button>
           </div>
 
-          {/* Progress card (sticky) */}
           <div className="sticky top-3 z-10 mt-8 rounded-xl border border-slate-200 bg-white/90 p-5 backdrop-blur dark:border-slate-700 dark:bg-slate-900/90">
             <div className="flex items-baseline justify-between">
-              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {stats.pct}% complete
-              </span>
+              <span className="text-lg font-semibold text-slate-900 dark:text-slate-100">{stats.pct}% complete</span>
               <span className="text-sm text-slate-500 dark:text-slate-400">
                 {stats.done} / {stats.total} weeks · {stats.hours} hrs logged
                 {saveState === "saving" && " · saving…"}
@@ -197,26 +191,15 @@ export default function TrackerPage() {
               </span>
             </div>
             <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-              <div
-                className="h-full rounded-full bg-brand-blue transition-all duration-500"
-                style={{ width: `${stats.pct}%` }}
-              />
+              <div className="h-full rounded-full bg-brand-blue transition-all duration-500" style={{ width: `${stats.pct}%` }} />
             </div>
-            {openQuestionCount > 0 && (
-              <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                {openQuestionCount} question{openQuestionCount === 1 ? "" : "s"} awaiting an answer —
-                these are picked up automatically twice a day.
-              </p>
-            )}
             {storeWarning && (
               <p className="mt-3 text-xs text-amber-600 dark:text-amber-400">
-                Storage isn&apos;t connected yet — changes won&apos;t be saved. Add the Vercel
-                store and env vars (see setup notes), then reload.
+                Storage isn&apos;t connected yet — changes won&apos;t be saved.
               </p>
             )}
           </div>
 
-          {/* Weeks */}
           <div className="mt-8 space-y-3">
             {PLAN.map((w) => {
               const p = progress[w.week] ?? { status: "not-started" as WeekStatus };
@@ -243,24 +226,15 @@ export default function TrackerPage() {
                         Week {w.week}
                       </span>
                       <span className="text-xs text-slate-400">{w.start}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.chip}`}>
-                        {w.focus}
-                      </span>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.chip}`}>{w.focus}</span>
                     </div>
 
-                    <p
-                      className={`mt-2 text-slate-700 dark:text-slate-300 ${
-                        isDone ? "line-through decoration-slate-400" : ""
-                      }`}
-                    >
+                    <p className={`mt-2 text-slate-700 dark:text-slate-300 ${isDone ? "line-through decoration-slate-400" : ""}`}>
                       {w.tasks}
                     </p>
 
-                    {w.milestone && (
-                      <p className="mt-1 text-sm font-medium text-brand-blue">{w.milestone}</p>
-                    )}
+                    {w.milestone && <p className="mt-1 text-sm font-medium text-brand-blue">{w.milestone}</p>}
 
-                    {/* Controls */}
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <select
                         value={p.status}
@@ -282,9 +256,7 @@ export default function TrackerPage() {
                           step={0.5}
                           value={p.actualHrs ?? ""}
                           onChange={(e) =>
-                            patchWeek(w.week, {
-                              actualHrs: e.target.value === "" ? undefined : Number(e.target.value),
-                            })
+                            patchWeek(w.week, { actualHrs: e.target.value === "" ? undefined : Number(e.target.value) })
                           }
                           className="w-16 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                           placeholder={String(w.targetHrs)}
@@ -300,26 +272,10 @@ export default function TrackerPage() {
                       />
                     </div>
 
-                    {/* Questions & answers */}
                     {weekQuestions.length > 0 && (
                       <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
                         {weekQuestions.map((q) => (
-                          <div key={q.id} className="rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-900/50">
-                            <p className="font-medium text-slate-800 dark:text-slate-200">
-                              <span className="mr-1">❓</span>
-                              {q.text}
-                            </p>
-                            {q.status === "answered" && q.answer ? (
-                              <p className="mt-1.5 whitespace-pre-wrap text-slate-600 dark:text-slate-300">
-                                <span className="mr-1 font-semibold text-brand-blue">Answer:</span>
-                                {q.answer}
-                              </p>
-                            ) : (
-                              <p className="mt-1 text-xs italic text-slate-400">
-                                Awaiting an answer — picked up twice daily.
-                              </p>
-                            )}
-                          </div>
+                          <QAItem key={q.id} q={q} />
                         ))}
                       </div>
                     )}
@@ -331,11 +287,40 @@ export default function TrackerPage() {
             })}
           </div>
 
-          {!loaded && (
-            <p className="mt-8 text-center text-slate-400">Loading your progress…</p>
-          )}
+          {!loaded && <p className="mt-8 text-center text-slate-400">Loading your progress…</p>}
         </div>
       </Container>
     </main>
+  );
+}
+
+function AskBox({ week, onAsk }: { week: number; onAsk: (week: number, text: string) => void }) {
+  const [text, setText] = useState("");
+  function submit() {
+    const t = text.trim();
+    if (!t) return;
+    onAsk(week, t);
+    setText("");
+  }
+  return (
+    <div className="mt-2 flex gap-2">
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") submit();
+        }}
+        placeholder="❓ Ask a question or flag an issue about this week…"
+        className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+      />
+      <button
+        onClick={submit}
+        disabled={!text.trim()}
+        className="shrink-0 rounded-md bg-brand-blue px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+      >
+        Ask
+      </button>
+    </div>
   );
 }

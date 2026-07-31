@@ -1,65 +1,13 @@
 import { NextResponse } from "next/server";
 import { getRedis, QUESTIONS_KEY, PROGRESS_KEY } from "@/lib/tracker/redis";
-import { COACH_CONTEXT } from "@/lib/tracker/coach-context";
-import { PLAN, type Question, type Progress } from "@/lib/tracker/plan";
+import { answerQuestion } from "@/lib/tracker/answer";
+import type { Question, Progress } from "@/lib/tracker/plan";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MODEL = process.env.COACH_MODEL || "claude-sonnet-4-6";
-const CONCURRENCY = 5; // answer up to this many at once; higher just needs headroom on rate limits
-
-function weekInfo(week: number): string {
-  const w = PLAN.find((p) => p.week === week);
-  if (!w) return `Week ${week}.`;
-  return `Week ${w.week} (${w.start}) — ${w.phase} — focus: ${w.focus}. This week's tasks: ${w.tasks}${
-    w.milestone ? ` Milestone: ${w.milestone}.` : ""
-  }`;
-}
-
-async function answerQuestion(q: Question, progress: Progress): Promise<string> {
-  const wp = progress[q.week];
-  const progressNote = wp
-    ? `His logged status for week ${q.week}: ${wp.status}${wp.actualHrs ? `, ${wp.actualHrs}h` : ""}${
-        wp.notes ? `, note: "${wp.notes}"` : ""
-      }.`
-    : `He hasn't logged progress for week ${q.week} yet.`;
-
-  const system = `${COACH_CONTEXT}\n\nContext for THIS question (tagged to a week):\n${weekInfo(
-    q.week
-  )}\n${progressNote}\n\nAnswer his question directly and practically in a few short paragraphs. No preamble, no sign-off.`;
-
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY || "",
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      system,
-      messages: [{ role: "user", content: q.text }],
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Anthropic ${res.status}: ${body.slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  const text = Array.isArray(data?.content)
-    ? data.content
-        .filter((b: { type?: string }) => b.type === "text")
-        .map((b: { text?: string }) => b.text ?? "")
-        .join("\n")
-        .trim()
-    : "";
-  return text || "(no answer generated)";
-}
+const CONCURRENCY = 5; // answer up to this many at once; higher just needs rate-limit headroom
 
 // Run an async mapper over items with a bounded concurrency.
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -100,7 +48,6 @@ async function handle(req: Request) {
     return NextResponse.json({ answered: 0, message: "No open questions." });
   }
 
-  // Answer every open question concurrently — total time ≈ one answer, not the sum.
   type Outcome = { q: Question; ok: true; answer: string } | { q: Question; ok: false; error: string };
   const outcomes = await mapLimit<Question, Outcome>(open, CONCURRENCY, async (q) => {
     try {
