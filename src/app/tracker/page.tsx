@@ -219,7 +219,7 @@ export default function TrackerPage() {
                   ? `${activePlan.length} weeks · ~${config.hours} hrs/week · starts ${
                       activePlan[0]?.start ?? ""
                     } → job-ready in ~${estimateMonths(config)} months`
-                  : "31 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Feb 2027"}
+                  : "33 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Mar 2027"}
               </p>
               <Link
                 href="/tracker/onboarding"

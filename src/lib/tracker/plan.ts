@@ -1,4 +1,4 @@
-// 28-week AI Engineer learning plan.
+// AI Engineer learning plan (default track).
 // Static curriculum data — progress is stored separately (see /api/progress).
 
 export type WeekStatus = "not-started" | "in-progress" | "done" | "skipped";
@@ -60,6 +60,7 @@ export const PHASE_STYLES: { match: string; bar: string; chip: string }[] = [
   { match: "Phase 1", bar: "border-l-emerald-400", chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
   { match: "Phase 2", bar: "border-l-orange-400", chip: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
   { match: "Phase 3", bar: "border-l-violet-400", chip: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300" },
+  { match: "Agentic", bar: "border-l-fuchsia-400", chip: "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/40 dark:text-fuchsia-300" },
   { match: "Phase 4", bar: "border-l-cyan-400", chip: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300" },
   { match: "Phase 5", bar: "border-l-amber-400", chip: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
   { match: "Phase 6", bar: "border-l-pink-400", chip: "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300" },
@@ -81,7 +82,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Setup & quick win",
     focus: "Get set up + first efficiency win",
     tasks:
-      "Get your environment production-ready: install Python 3.12+ (via uv or pyenv), VS Code with the Python extension, and Git. Create OpenAI and Anthropic accounts, generate API keys, and set a hard spend cap of $20–50 so experiments can't run away. Spin up a fresh GitHub repo for your AI work. Finish Anthropic Academy's 'Claude Code 101' so you're using the agentic coding tool from day one.",
+      "Get your environment production-ready: install Python 3.12+ (via uv or pyenv), VS Code with the Python extension, and Git. Create OpenAI and Anthropic accounts, generate API keys, and set a hard spend cap of $20–50 so experiments can't run away. Spin up a fresh GitHub repo for your AI work. Finish Anthropic Academy's 'Claude Code 101' so you're using the agentic coding tool from day one. Add a CLAUDE.md to a repo you know well so the agent has real project context from the start.",
     milestone: "Dev environment ready; keys working; repo created",
     targetHrs: 10,
   },
@@ -91,7 +92,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Quick wins",
     focus: "Power-user efficiency",
     tasks:
-      "Complete Anthropic Academy's 'Introduction to Agent Skills' and 'Introduction to Subagents'. Then apply them for real: pick a genuine task from your current job and drive it end-to-end with Claude Code — let it read the codebase, plan, and make edits. The goal this week is to make Claude Code a daily habit, not a novelty.",
+      "Complete Anthropic Academy's 'Introduction to Agent Skills' and 'Introduction to Subagents'. Then apply them for real: pick a genuine task from your current job and drive it end-to-end with Claude Code — let it read the codebase, plan, and make edits. Write one custom Agent Skill that encodes a workflow you repeat. Run Claude Code on one of your mobile repos to feel how it handles a large codebase. The goal this week is to make Claude Code a daily habit, not a novelty.",
     milestone: "Claude Code in your daily workflow",
     targetHrs: 10,
   },
@@ -273,6 +274,26 @@ export const PLAN: PlanWeek[] = [
   {
     week: 21,
     start: "Fri 18 Dec 2026",
+    phase: "Agentic Dev Tooling",
+    focus: "Claude Code at team scale",
+    tasks:
+      "Configure Claude Code for a large, real repo — a solid CLAUDE.md, project context, and custom slash commands for your team's common workflows. Practise driving multi-step changes and code review with subagents. Optimise context and token usage for repo-scale analysis so it stays fast and cheap on big codebases. This is the core of the 'Claude Code specialist' roles now appearing.",
+    milestone: "Reusable Claude Code setup for a real repo",
+    targetHrs: 10,
+  },
+  {
+    week: 22,
+    start: "Fri 25 Dec 2026",
+    phase: "Agentic Dev Tooling",
+    focus: "Dev tooling & guardrails",
+    tasks:
+      "Build a small CLI wrapper or MCP tool around Claude's developer tools that automates something real in your workflow. Establish guardrails for AI-generated code — review gates, required tests, and prompt-injection / secret-leak defences. Wire an AI step into a CI pipeline. Aim it squarely at your domain: agentic coding tooling for mobile teams (Kotlin/Swift/Flutter) is a scarce, hireable niche.",
+    milestone: "🎯 Dev-tooling artefact (CLI/MCP + CI + guardrails)",
+    targetHrs: 10,
+  },
+  {
+    week: 23,
+    start: "Fri 1 Jan 2027",
     phase: "Phase 4: Production",
     focus: "Evaluation (the money skill)",
     tasks:
@@ -281,8 +302,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 22,
-    start: "Fri 25 Dec 2026",
+    week: 24,
+    start: "Fri 8 Jan 2027",
     phase: "Phase 4: Production",
     focus: "Observability",
     tasks:
@@ -290,8 +311,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 23,
-    start: "Fri 1 Jan 2027",
+    week: 25,
+    start: "Fri 15 Jan 2027",
     phase: "Phase 4: Production",
     focus: "Reliability",
     tasks:
@@ -299,8 +320,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 24,
-    start: "Fri 8 Jan 2027",
+    week: 26,
+    start: "Fri 22 Jan 2027",
     phase: "Phase 4: Production",
     focus: "Deploy",
     tasks:
@@ -309,8 +330,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 25,
-    start: "Fri 15 Jan 2027",
+    week: 27,
+    start: "Fri 29 Jan 2027",
     phase: "Phase 4: Production",
     focus: "Tune & prove",
     tasks:
@@ -319,8 +340,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 26,
-    start: "Fri 22 Jan 2027",
+    week: 28,
+    start: "Fri 5 Feb 2027",
     phase: "Phase 5: AI Systems Design",
     focus: "Architecture & tradeoffs",
     tasks:
@@ -329,8 +350,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 27,
-    start: "Fri 29 Jan 2027",
+    week: 29,
+    start: "Fri 12 Feb 2027",
     phase: "Phase 5: AI Systems Design",
     focus: "Scaling & retrieval at scale",
     tasks:
@@ -339,8 +360,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 28,
-    start: "Fri 5 Feb 2027",
+    week: 30,
+    start: "Fri 19 Feb 2027",
     phase: "Phase 5: AI Systems Design",
     focus: "System-design interviews",
     tasks:
@@ -349,8 +370,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 29,
-    start: "Fri 12 Feb 2027",
+    week: 31,
+    start: "Fri 26 Feb 2027",
     phase: "Phase 6: Launch",
     focus: "Portfolio polish",
     tasks:
@@ -359,8 +380,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 30,
-    start: "Fri 19 Feb 2027",
+    week: 32,
+    start: "Fri 5 Mar 2027",
     phase: "Phase 6: Launch",
     focus: "Visibility",
     tasks:
@@ -369,8 +390,8 @@ export const PLAN: PlanWeek[] = [
     targetHrs: 10,
   },
   {
-    week: 31,
-    start: "Fri 26 Feb 2027",
+    week: 33,
+    start: "Fri 12 Mar 2027",
     phase: "Phase 6: Launch",
     focus: "Go to market",
     tasks:

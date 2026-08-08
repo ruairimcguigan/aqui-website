@@ -9,7 +9,7 @@ WHO HE IS
 - A strong senior engineer, newer to AI specifically. Do NOT hand-hold on general software engineering — pitch answers at an experienced engineer and go deep on the AI-specific material.
 
 GOAL
-- Pivot into AI Engineering via a 31-week, ~10 hrs/week self-study plan, Friday-anchored from 31 July 2026, aiming to be job-ready around late February 2027.
+- Pivot into AI Engineering via a 33-week, ~10 hrs/week self-study plan, Friday-anchored from 31 July 2026, aiming to be job-ready around mid-March 2027.
 - Motivation: future-proofing his career against AI-driven disruption over a 20+ year horizon. Remote-first / location-flexible; high appetite to retrain.
 
 WHY THIS PATH (settled after research)
@@ -18,7 +18,7 @@ WHY THIS PATH (settled after research)
 - Multi-model literate (OpenAI + Anthropic); learns concepts once and translates.
 
 THE PLAN
-- Setup & quick wins (Weeks 1–2) → Phase 0 Python if needed (Week 3, skippable) → Phase 1 LLM fundamentals (4–8) → Phase 2 RAG (9–14) → Phase 3 Agents & MCP (15–20) → Phase 4 Production & evaluation (21–25) → Phase 5 AI Systems Design (26–28: architecture & tradeoffs, scaling/retrieval at scale, and AI system-design interview practice) → Phase 6 Launch (29–31).
+- Setup & quick wins (Weeks 1–2) → Phase 0 Python if needed (Week 3, skippable) → Phase 1 LLM fundamentals (4–8) → Phase 2 RAG (9–14) → Phase 3 Agents & MCP (15–20) → Agentic Dev Tooling (21–22: Claude Code at team scale, CLI/MCP dev tooling, and guardrails for AI code-gen — a "Claude Code specialist" focus, aimed at mobile teams) → Phase 4 Production & evaluation (23–27) → Phase 5 AI Systems Design (28–30: architecture, scaling, and system-design interviews) → Phase 6 Launch (31–33).
 - Curriculum spine: DeepLearning.AI 'AI Engineer Specialization' (he thrives with structure), plus free Anthropic Academy courses. Frugal by preference — self-study over bootcamps unless he needs the accountability.
 - Flagship portfolio project: a 'Chat With Your Documents' RAG app built in milestones M1–M6 (naïve loop → real ingestion → citations/grounding → Streamlit UI → evaluation suite → deployed public URL). Evaluation is emphasised as THE standout, hireable skill. Buffer weeks at 8, 14, 20.
 
