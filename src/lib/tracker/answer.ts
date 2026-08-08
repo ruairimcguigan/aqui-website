@@ -16,19 +16,14 @@ export function weekInfo(week: number, plan: PlanWeek[]): string {
   }`;
 }
 
-export async function answerQuestion(q: Question, progress: Progress, plan: PlanWeek[]): Promise<string> {
-  const wp = progress[q.week];
-  const progressNote = wp
-    ? `His logged status for week ${q.week}: ${wp.status}${wp.actualHrs ? `, ${wp.actualHrs}h` : ""}${
-        wp.notes ? `, note: "${wp.notes}"` : ""
-      }.`
-    : `He hasn't logged progress for week ${q.week} yet.`;
+export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-  const system = `${COACH_CONTEXT}\n\nContext for THIS question (tagged to a week):\n${weekInfo(
-    q.week,
-    plan
-  )}\n${progressNote}\n\nAnswer his question directly and practically in a few short paragraphs. No preamble, no sign-off.`;
-
+// Generic Claude call used by the coach features.
+export async function callClaude(
+  system: string,
+  messages: ChatMessage[],
+  maxTokens = 1024
+): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -36,12 +31,7 @@ export async function answerQuestion(q: Question, progress: Progress, plan: Plan
       "x-api-key": process.env.ANTHROPIC_API_KEY || "",
       "anthropic-version": "2023-06-01",
     },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1024,
-      system,
-      messages: [{ role: "user", content: q.text }],
-    }),
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages }),
   });
 
   if (!res.ok) {
@@ -58,4 +48,20 @@ export async function answerQuestion(q: Question, progress: Progress, plan: Plan
         .trim()
     : "";
   return text || "(no answer generated)";
+}
+
+export async function answerQuestion(q: Question, progress: Progress, plan: PlanWeek[]): Promise<string> {
+  const wp = progress[q.week];
+  const progressNote = wp
+    ? `His logged status for week ${q.week}: ${wp.status}${wp.actualHrs ? `, ${wp.actualHrs}h` : ""}${
+        wp.notes ? `, note: "${wp.notes}"` : ""
+      }.`
+    : `He hasn't logged progress for week ${q.week} yet.`;
+
+  const system = `${COACH_CONTEXT}\n\nContext for THIS question (tagged to a week):\n${weekInfo(
+    q.week,
+    plan
+  )}\n${progressNote}\n\nAnswer his question directly and practically in a few short paragraphs. No preamble, no sign-off.`;
+
+  return callClaude(system, [{ role: "user", content: q.text }], 1024);
 }

@@ -15,6 +15,7 @@ import {
   type WeekStatus,
 } from "@/lib/tracker/plan";
 import { generatePlan, getTrack, estimateMonths, type OnboardingConfig } from "@/lib/tracker/tracks";
+import { NotesEditor } from "@/app/_components/notes-editor";
 
 const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
 
@@ -68,6 +69,7 @@ export default function TrackerPage() {
   const [progress, setProgress] = useState<Progress>({});
   const [questions, setQuestions] = useState<UIQuestion[]>([]);
   const [config, setConfig] = useState<OnboardingConfig | null>(null);
+  const [noteQuery, setNoteQuery] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storeWarning, setStoreWarning] = useState(false);
@@ -225,6 +227,9 @@ export default function TrackerPage() {
                 <Link href="/tracker/plan" className="hover:underline">
                   Read the full plan →
                 </Link>
+                <Link href="/tracker/notes" className="hover:underline">
+                  Notes →
+                </Link>
                 <Link href="/tracker/onboarding" className="hover:underline">
                   {config ? "Change track / adjust plan →" : "Personalize your roadmap →"}
                 </Link>
@@ -256,10 +261,23 @@ export default function TrackerPage() {
                 Storage isn&apos;t connected yet — changes won&apos;t be saved.
               </p>
             )}
+            <input
+              type="text"
+              value={noteQuery}
+              onChange={(e) => setNoteQuery(e.target.value)}
+              placeholder="🔎 Search your notes…"
+              className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            />
           </div>
 
           <div className="mt-8 space-y-3">
-            {activePlan.map((w) => {
+            {activePlan
+              .filter((w) => {
+                const q = noteQuery.trim().toLowerCase();
+                if (!q) return true;
+                return (progress[w.week]?.notes ?? "").toLowerCase().includes(q);
+              })
+              .map((w) => {
               const p = progress[w.week] ?? { status: "not-started" as WeekStatus };
               const ps = phaseStyle(w.phase);
               const isDone = p.status === "done";
@@ -352,14 +370,9 @@ export default function TrackerPage() {
                         />
                       </label>
 
-                      <input
-                        type="text"
-                        value={p.notes ?? ""}
-                        onChange={(e) => patchWeek(w.week, { notes: e.target.value })}
-                        placeholder="Notes…"
-                        className="min-w-[8rem] flex-1 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-blue dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                      />
                     </div>
+
+                    <NotesEditor value={p.notes ?? ""} onChange={(v) => patchWeek(w.week, { notes: v })} />
 
                     {weekQuestions.length > 0 && (
                       <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">
