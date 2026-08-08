@@ -112,7 +112,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 1: LLM fundamentals",
     focus: "Curriculum spine begins",
     tasks:
-      "Enrol in the DeepLearning.AI 'AI Engineer Specialization' — this is your curriculum spine — and work through Course 1. Alongside it, do the short, free 'ChatGPT Prompt Engineering for Developers'. Aim to genuinely understand what a foundation model is and isn't before you start building on one.",
+      "Enrol in the DeepLearning.AI 'AI Engineer Specialization' — this is your curriculum spine — and work through Course 1. Alongside it, do the short, free 'ChatGPT Prompt Engineering for Developers'. Aim to genuinely understand what a foundation model is and isn't before you start building on one. (This DeepLearning.AI spine carries the fundamentals + RAG front half; from Week 15 the agents-onward half switches to the Udacity 'AI Engineering with Claude' Nanodegree.)",
     milestone: "Specialization Course 1 underway",
     targetHrs: 10,
   },
@@ -220,7 +220,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 3: Agents",
     focus: "Tool use",
     tasks:
-      "Begin the agents module of the Specialization. Understand tool/function calling in depth — how a model decides to call a function, how you pass the result back, and how to design tools well. As practice, convert one manual step in an earlier project into a proper tool call.",
+      "Begin the agents module of the Specialization. From here your paid spine is the Udacity 'AI Engineering with Claude' Nanodegree — each of its four courses is mapped to the weeks where its theme fits your build (see the milestones). Start Course 1 (Harness Engineering): choose Claude 4.5 models (Haiku/Sonnet/Opus) via the API by intelligence, speed and cost; learn agentic system design (perceive–reason–act); the Claude Agent SDK; and building production agents driven by stop-reason loops. Build the course's 'claims intake agent' across its cumulative exercises.",
+    milestone: "🎯 Claims intake agent (ND Course 1)",
     targetHrs: 10,
   },
   {
@@ -229,7 +230,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 3: Agents",
     focus: "Agentic patterns",
     tasks:
-      "Learn the core agentic patterns: ReAct (reason + act loops), Plan-and-Execute, and Reflection (self-critique). Understand the difference between short-term and long-term memory for agents and where each matters. Sketch how you'd apply one of these patterns to a real task.",
+      "Learn the core agentic patterns: ReAct, Plan-and-Execute, and Reflection; short-term vs long-term agent memory. Continue Course 1: engineer a long-conversation context strategy for the 'retail support copilot' — prune verbose tool output, compress resolved turns on a token budget, and place the facts where the model reads them best. Finish the Course 1 project: run, verify, and defend four reference systems in a reflection brief.",
+    milestone: "🎯 Course 1 project: 4 systems run & defended",
     targetHrs: 10,
   },
   {
@@ -238,8 +240,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 3: Agents",
     focus: "MCP",
     tasks:
-      "Do Anthropic Academy's 'Introduction to Model Context Protocol'. Build a minimal MCP server and client so you understand the standard that now underpins tool use across the industry — including OpenAI. Aim to expose at least one simple tool over MCP yourself.",
-    milestone: "First MCP server/client",
+      "Do Anthropic Academy's 'Introduction to Model Context Protocol', then start the Nanodegree's Course 2 (MCP in Action). Learn the MCP architecture (hosts, clients, servers; JSON-RPC transport; lifecycle), the three server features (tools, resources, prompts), and the client features (roots, sampling, elicitation). Build your own MCP server with FastMCP and integrate it with a Claude Agent SDK agent.",
+    milestone: "🎯 Custom MCP server (FastMCP)",
     targetHrs: 10,
   },
   {
@@ -248,7 +250,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 3: Agents",
     focus: "MCP advanced",
     tasks:
-      "Do 'MCP: Advanced Topics' and apply the production patterns — proper error handling, auth, and structuring multiple tools cleanly. MCP fluency is a genuine differentiator right now, so it's worth investing real time here rather than skimming.",
+      "Do 'MCP: Advanced Topics', then continue Course 2: build a retail inventory agent with MCP tools (structured tool results, a tool-choice policy), implement custom tools in the Claude Agent SDK, and add governance — scoped config, a secret-leak CI gate, and an audited agent loop. Then build the course project: 'PriceScout', an agentic analyst that commands custom scraper and database MCP servers to analyse competitor pricing automatically.",
+    milestone: "🎯 PriceScout agentic analyst (ND Course 2)",
     targetHrs: 10,
   },
   {
@@ -277,8 +280,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Agentic Dev Tooling",
     focus: "Claude Code at team scale",
     tasks:
-      "Configure Claude Code for a large, real repo — a solid CLAUDE.md, project context, and custom slash commands for your team's common workflows. Practise driving multi-step changes and code review with subagents. Optimise context and token usage for repo-scale analysis so it stays fast and cheap on big codebases. This is the core of the 'Claude Code specialist' roles now appearing.",
-    milestone: "Reusable Claude Code setup for a real repo",
+      "The Claude-Code-specialist core, built on Course 1's team-scale lessons: configure Claude Code for a large real repo (a modular CLAUDE.md hierarchy with @import standards, path-scoped rules, a read-only /review command, and a forked /deploy-check skill). Author reusable Claude Skills for your team's workflows. Build the 'Multi-Surface Monorepo Team' config and stand up the multi-shift quality-monitoring orchestration (scheduled, tiered hot/warm/cold state, resume-vs-fresh recovery). Optimise context and token usage for repo-scale analysis.",
+    milestone: "🎯 Multi-Surface Monorepo config (ND Course 1)",
     targetHrs: 10,
   },
   {
@@ -287,8 +290,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Agentic Dev Tooling",
     focus: "Dev tooling & guardrails",
     tasks:
-      "Build a small CLI wrapper or MCP tool around Claude's developer tools that automates something real in your workflow. Establish guardrails for AI-generated code — review gates, required tests, and prompt-injection / secret-leak defences. Wire an AI step into a CI pipeline. Aim it squarely at your domain: agentic coding tooling for mobile teams (Kotlin/Swift/Flutter) is a scarce, hireable niche.",
-    milestone: "🎯 Dev-tooling artefact (CLI/MCP + CI + guardrails)",
+      "Do the Nanodegree's Course 4 (Bounded Autonomy & Guardrails): design multi-agent systems with an orchestrator over specialised subagents, build a hub-and-spoke system with the Claude Agent SDK, and add deterministic hooks (a PostToolUse hook that normalises tool output; an interception hook that blocks over-threshold actions) that enforce compliance no matter what the model decides. Build the flagship project — the enterprise multi-agent code-review orchestrator that checks PR code quality. Aim it at your domain: agentic coding tooling for mobile teams (Kotlin/Swift/Flutter) is a scarce, hireable niche, and this is almost exactly what Claude-Code-specialist roles ask for.",
+    milestone: "🎯 Enterprise code-review orchestrator (ND Course 4)",
     targetHrs: 10,
   },
   {
@@ -297,7 +300,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 4: Production",
     focus: "Evaluation (the money skill)",
     tasks:
-      "The most valuable skill in the whole plan: build an evaluation set for your RAG app — questions paired with expected answers — and measure retrieval hit-rate and answer quality objectively. Establish a baseline you can then improve against. This is exactly what you'll talk about in interviews.",
+      "The most valuable skill in the whole plan: build an evaluation set for your RAG app and measure retrieval hit-rate and answer quality objectively; establish a baseline you can improve against. Do the Nanodegree's Course 3 (Agent Evaluation & Observability): enforce structured outputs with Zod schemas in the Claude Agent SDK, and build automated evaluation frameworks using agent traces, evaluators, test cases, and schema validation.",
     milestone: "🎯 M5: eval suite + baseline numbers",
     targetHrs: 10,
   },
@@ -307,7 +310,8 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 4: Production",
     focus: "Observability",
     tasks:
-      "Instrument your projects with LangSmith (or a similar tool): trace every LLM call, inspect inputs and outputs, and catch failures you previously couldn't see. Being able to observe and debug AI systems in production is a core, under-taught skill.",
+      "Instrument your projects with LangSmith: trace every LLM call, inspect inputs and outputs, and catch failures you couldn't see before. Continue Course 3: build a validated, routed insurance-policy extraction pipeline (retry the fixable, escalate the rest, route each to the right human queue) and a multi-source supply-chain risk synthesiser that fuses disagreeing sources. Finish the Course 3 project — operate and defend the systems you built.",
+    milestone: "🎯 Evaluation & Observability project (ND Course 3)",
     targetHrs: 10,
   },
   {

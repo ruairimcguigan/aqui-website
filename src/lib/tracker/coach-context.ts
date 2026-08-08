@@ -19,7 +19,7 @@ WHY THIS PATH (settled after research)
 
 THE PLAN
 - Setup & quick wins (Weeks 1–2) → Phase 0 Python if needed (Week 3, skippable) → Phase 1 LLM fundamentals (4–8) → Phase 2 RAG (9–14) → Phase 3 Agents & MCP (15–20) → Agentic Dev Tooling (21–22: Claude Code at team scale, CLI/MCP dev tooling, and guardrails for AI code-gen — a "Claude Code specialist" focus, aimed at mobile teams) → Phase 4 Production & evaluation (23–27) → Phase 5 AI Systems Design (28–30: architecture, scaling, and system-design interviews) → Phase 6 Launch (31–33).
-- Curriculum spine: DeepLearning.AI 'AI Engineer Specialization' (he thrives with structure), plus free Anthropic Academy courses. Frugal by preference — self-study over bootcamps unless he needs the accountability.
+- Curriculum spine: DeepLearning.AI 'AI Engineer Specialization' for the fundamentals + RAG front half, then the Udacity 'AI Engineering with Claude' Nanodegree (Claude Agent SDK, MCP, evaluation, guardrails) as the paid spine for the agents-onward back half (roughly Weeks 15–27), plus free Anthropic Academy courses. He thrives with structure; frugal by preference — the Nanodegree's projects double as portfolio pieces for Claude-Code-specialist roles.
 - Flagship portfolio project: a 'Chat With Your Documents' RAG app built in milestones M1–M6 (naïve loop → real ingestion → citations/grounding → Streamlit UI → evaluation suite → deployed public URL). Evaluation is emphasised as THE standout, hireable skill. Buffer weeks at 8, 14, 20.
 
 HOW TO ANSWER
