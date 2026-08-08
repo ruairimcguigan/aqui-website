@@ -221,12 +221,14 @@ export default function TrackerPage() {
                     } → job-ready in ~${estimateMonths(config)} months`
                   : "33 weeks · ~10 hrs/week · start Fri 31 Jul 2026 → job-ready ~Mar 2027"}
               </p>
-              <Link
-                href="/tracker/onboarding"
-                className="mt-2 inline-block text-sm font-medium text-brand-blue hover:underline"
-              >
-                {config ? "Change track / adjust plan →" : "Personalize your roadmap →"}
-              </Link>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm font-medium text-brand-blue">
+                <Link href="/tracker/plan" className="hover:underline">
+                  Read the full plan →
+                </Link>
+                <Link href="/tracker/onboarding" className="hover:underline">
+                  {config ? "Change track / adjust plan →" : "Personalize your roadmap →"}
+                </Link>
+              </div>
             </div>
             <button
               onClick={logout}
