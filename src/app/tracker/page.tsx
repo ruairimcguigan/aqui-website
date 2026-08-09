@@ -16,6 +16,7 @@ import {
 } from "@/lib/tracker/plan";
 import { generatePlan, getTrack, estimateMonths, type OnboardingConfig } from "@/lib/tracker/tracks";
 import { NotesEditor } from "@/app/_components/notes-editor";
+import { AttachmentsEditor } from "@/app/_components/attachments-editor";
 
 const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
 
@@ -373,6 +374,11 @@ export default function TrackerPage() {
                     </div>
 
                     <NotesEditor value={p.notes ?? ""} onChange={(v) => patchWeek(w.week, { notes: v })} />
+
+                    <AttachmentsEditor
+                      value={p.attachments ?? []}
+                      onChange={(next) => patchWeek(w.week, { attachments: next })}
+                    />
 
                     {weekQuestions.length > 0 && (
                       <div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-700">

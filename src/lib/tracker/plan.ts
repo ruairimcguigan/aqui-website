@@ -13,11 +13,52 @@ export interface PlanWeek {
   targetHrs: number;
 }
 
+export type AttachmentKind = "doc" | "sheet" | "slides" | "pdf" | "drive" | "link";
+
+// A labelled reference link attached to a week (Drive/Docs/PDF/etc.). We store
+// links, not files — the file lives wherever it already does (see PRODUCT_NOTES).
+export interface Attachment {
+  id: string;
+  label: string;
+  url: string;
+  kind: AttachmentKind;
+  addedAt: number;
+}
+
+// Detect a friendly kind from a URL so the UI can show the right icon.
+export function attachmentKind(rawUrl: string): AttachmentKind {
+  let host = "";
+  let path = "";
+  try {
+    const u = new URL(rawUrl);
+    host = u.hostname.toLowerCase();
+    path = u.pathname.toLowerCase();
+  } catch {
+    return "link";
+  }
+  if (host.includes("docs.google.com")) {
+    if (path.includes("/spreadsheets")) return "sheet";
+    if (path.includes("/presentation")) return "slides";
+    if (path.includes("/document")) return "doc";
+  }
+  if (host.includes("drive.google.com")) return "drive";
+  if (path.endsWith(".pdf")) return "pdf";
+  return "link";
+}
+
+// Normalise a user-entered URL (prepend https:// if the scheme is missing).
+export function normaliseUrl(raw: string): string {
+  const t = raw.trim();
+  if (!t) return t;
+  return /^https?:\/\//i.test(t) ? t : `https://${t}`;
+}
+
 export interface WeekProgress {
   status: WeekStatus;
   actualHrs?: number;
   notes?: string;
   actionsDone?: number[]; // indices of completed actions within the week
+  attachments?: Attachment[]; // labelled reference links for the week
 }
 
 // Split a week's task prose into discrete, checkable actions.
