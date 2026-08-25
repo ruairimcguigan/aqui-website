@@ -13,6 +13,18 @@ export interface PlanWeek {
   targetHrs: number;
 }
 
+// A reference link surfaced on a week card.
+export interface WeekResource {
+  label: string;
+  href: string;
+}
+
+// Reference links pinned to specific weeks. Keyed by week number so they show on
+// the matching card whether the active plan is the default or a generated track.
+export const WEEK_RESOURCES: Record<number, WeekResource[]> = {
+  3: [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
+};
+
 export type AttachmentKind = "doc" | "sheet" | "slides" | "pdf" | "drive" | "link";
 
 // A labelled reference link attached to a week (Drive/Docs/PDF/etc.). We store
