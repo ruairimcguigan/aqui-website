@@ -21,6 +21,9 @@ import { AttachmentsEditor } from "@/app/_components/attachments-editor";
 
 const STATUSES: WeekStatus[] = ["not-started", "in-progress", "done", "skipped"];
 
+// Base URL for the companion GitHub repo's per-week folders (weeks/week-NN).
+const REPO_WEEK_BASE = "https://github.com/ruairimcguigan/ai-engineering/tree/main/weeks";
+
 type SaveState = "idle" | "saving" | "saved" | "error";
 type UIQuestion = Question & { pending?: boolean };
 
@@ -288,7 +291,7 @@ export default function TrackerPage() {
               const weekQuestions = questionsByWeek.get(w.week) ?? [];
 
               return (
-                <div key={w.week}>
+                <div key={w.week} id={`week-${w.week}`} className="scroll-mt-6">
                   {showPhase && (
                     <h2 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
                       {w.phase}
@@ -305,6 +308,15 @@ export default function TrackerPage() {
                       </span>
                       <span className="text-xs text-slate-400">{w.start}</span>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${ps.chip}`}>{w.focus}</span>
+                      <a
+                        href={`${REPO_WEEK_BASE}/week-${String(w.week).padStart(2, "0")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition hover:text-brand-blue"
+                        title={`Week ${w.week} notes & files on GitHub`}
+                      >
+                        GitHub ↗
+                      </a>
                     </div>
 
                     {(() => {
