@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Container from "@/app/_components/container";
-import { PLAN, phaseStyle, type PlanWeek } from "@/lib/tracker/plan";
+import { PLAN, WEEK_RESOURCES, phaseStyle, type PlanWeek } from "@/lib/tracker/plan";
 import { generatePlan, getTrack, estimateMonths, type OnboardingConfig } from "@/lib/tracker/tracks";
 
 export default function FullPlanPage() {
@@ -111,6 +111,20 @@ export default function FullPlanPage() {
                       <p className="mt-2 text-slate-700 dark:text-slate-300">{w.tasks}</p>
                       {w.milestone && (
                         <p className="mt-1.5 text-sm font-semibold text-brand-blue">{w.milestone}</p>
+                      )}
+                      {(WEEK_RESOURCES[w.week] ?? []).length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {WEEK_RESOURCES[w.week].map((r) => (
+                            <Link
+                              key={r.href}
+                              href={r.href}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-brand-blue/40 bg-brand-blue/5 px-2.5 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/10 dark:border-brand-blue/50"
+                            >
+                              <span aria-hidden>📄</span>
+                              {r.label}
+                            </Link>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
