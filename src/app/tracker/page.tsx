@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   PLAN,
   STATUS_LABELS,
-  WEEK_RESOURCES,
+  weekResources,
   phaseStyle,
   splitActions,
   type Progress,
@@ -356,9 +356,9 @@ export default function TrackerPage() {
 
                     {w.milestone && <p className="mt-2 text-sm font-medium text-brand-blue">{w.milestone}</p>}
 
-                    {(WEEK_RESOURCES[w.week] ?? []).length > 0 && (
+                    {weekResources(w).length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {WEEK_RESOURCES[w.week].map((r) => (
+                        {weekResources(w).map((r) => (
                           <Link
                             key={r.href}
                             href={r.href}
