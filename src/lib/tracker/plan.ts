@@ -23,6 +23,8 @@ export interface WeekResource {
 // the matching card whether the active plan is the default or a generated track.
 export const WEEK_RESOURCES: Record<number, WeekResource[]> = {
   3: [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
+  17: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
+  18: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
 };
 
 export type AttachmentKind = "doc" | "sheet" | "slides" | "pdf" | "drive" | "link";
