@@ -19,11 +19,22 @@ export interface WeekResource {
   href: string;
 }
 
-// Reference links pinned to specific weeks. Keyed by week number so they show on
-// the matching card whether the active plan is the default or a generated track.
-export const WEEK_RESOURCES: Record<number, WeekResource[]> = {
-  3: [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
+// Reference links pinned to specific weeks, keyed by `focus` rather than week
+// number. generatePlan() renumbers every week from 1 and drops the Python week
+// when the user is already fluent, so a numeric key silently slides onto the
+// wrong week — and onto an unrelated week entirely on the other tracks. Focus
+// strings are stable across both, and are unique per track, so a pin only ever
+// matches the week it was written for.
+const RESOURCES_BY_FOCUS: Record<string, WeekResource[]> = {
+  "Python fluency": [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
+  MCP: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
+  "MCP advanced": [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
 };
+
+/** Reference links to show on a week's card, or an empty array if it has none. */
+export function weekResources(week: Pick<PlanWeek, "focus">): WeekResource[] {
+  return RESOURCES_BY_FOCUS[week.focus] ?? [];
+}
 
 export type AttachmentKind = "doc" | "sheet" | "slides" | "pdf" | "drive" | "link";
 
