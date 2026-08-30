@@ -27,6 +27,7 @@ export interface WeekResource {
 // matches the week it was written for.
 const RESOURCES_BY_FOCUS: Record<string, WeekResource[]> = {
   "Python fluency": [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
+  "Talking to models": [{ label: "How the Transformer works (diagram)", href: "/tracker/transformer" }],
   MCP: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
   "MCP advanced": [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
 };
