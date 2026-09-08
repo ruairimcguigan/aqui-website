@@ -178,10 +178,10 @@ export const PLAN: PlanWeek[] = [
     week: 4,
     start: "Fri 21 Aug 2026",
     phase: "Phase 1: LLM fundamentals",
-    focus: "Curriculum spine begins",
+    focus: "Fundamentals, fast",
     tasks:
-      "Enrol in the DeepLearning.AI 'AI Engineer Specialization' — this is your curriculum spine — and work through Course 1. Alongside it, do the short, free 'ChatGPT Prompt Engineering for Developers'. Aim to genuinely understand what a foundation model is and isn't before you start building on one. (This DeepLearning.AI spine carries the fundamentals + RAG front half; from Week 15 the agents-onward half switches to the Udacity 'AI Engineering with Claude' Nanodegree.)",
-    milestone: "Specialization Course 1 underway",
+      "Skip the long theory course — it's abstract and front-loads maths you don't need for applied work. Get transformer/attention intuition fast from two hands-on sources instead: 3Blue1Brown's neural-network and attention videos, and Andrej Karpathy's 'Let's build GPT from scratch' (you code a tiny model, so the ideas stop being abstract). A few evenings, not weeks. Then start building the same week — make your first real Claude/OpenAI API calls from Python. The rule for this whole phase is build-first: reach for theory only when a build makes you need it.",
+    milestone: "Intuition down; building started",
     targetHrs: 10,
   },
   {
@@ -190,7 +190,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 1: LLM fundamentals",
     focus: "Talking to models",
     tasks:
-      "Continue the Specialization and get concrete about mechanics: how tokens work, context-window limits, temperature and sampling, and — importantly — how pricing is calculated so you can reason about cost. Write your first real API calls from Python and log the token usage of each one.",
+      "Get concrete about the mechanics that matter — by making calls, not watching lectures: how tokens work, context-window limits, temperature and sampling, and how pricing is calculated so you can reason about cost. Write real API calls from Python and log the token usage and cost of each one. (The Transformer diagram linked below is the one piece of up-front theory worth having.)",
     milestone: "First working API script",
     targetHrs: 10,
   },
@@ -219,7 +219,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 1: LLM fundamentals",
     focus: "Consolidate",
     tasks:
-      "Build a second small tool — an article or document summariser — to cement the fundamentals. Tidy both projects: clear READMEs, proper .env handling, no committed secrets. This is a buffer week, so use any slack to catch up rather than race ahead.",
+      "Build a second small tool — an article or document summariser — to cement the fundamentals. Tidy both projects: clear READMEs, proper .env handling, no committed secrets. Then front-load the free Anthropic Academy 'Introduction to MCP' course now, so the MCP model is in your head ahead of the kmp-ui-automator build (which starts well before the plan's formal MCP weeks). Buffer week — use any slack to catch up rather than race ahead.",
     milestone: "🎯 Summariser (on GitHub)",
     targetHrs: 10,
   },
