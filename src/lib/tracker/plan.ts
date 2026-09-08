@@ -17,6 +17,9 @@ export interface PlanWeek {
 export interface WeekResource {
   label: string;
   href: string;
+  // External links (videos, courses) open in a new tab so the tracker stays put;
+  // internal /tracker pages navigate in place. Defaults to internal when omitted.
+  external?: boolean;
 }
 
 // Reference links pinned to specific weeks, keyed by `focus` rather than week
@@ -30,7 +33,23 @@ const RESOURCES_BY_FOCUS: Record<string, WeekResource[]> = {
     { label: "Concept coverage checklist (the map)", href: "/tracker/coverage" },
   ],
   "Python fluency": [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
-  "Talking to models": [{ label: "How the Transformer works (diagram)", href: "/tracker/transformer" }],
+  // Week 4 — ordered concept-grounding + build spine. Watch 1 & 2 before building,
+  // start the Academy course (3) the same week, let Karpathy (4) run alongside.
+  "Fundamentals, fast": [
+    { label: "1 · 3Blue1Brown — Transformers (Ch 5, ~27m) ▶", href: "https://www.youtube.com/watch?v=wjZofJX0v4M", external: true },
+    { label: "2 · 3Blue1Brown — Attention (Ch 6, ~26m) ▶", href: "https://www.youtube.com/watch?v=eMlx5fFNoYc", external: true },
+    { label: "How the Transformer works (diagram)", href: "/tracker/transformer" },
+    { label: "3 · Anthropic Academy — Building with the Claude API", href: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", external: true },
+    { label: "4 · Karpathy — Deep Dive into LLMs (3.5h) ▶", href: "https://www.youtube.com/watch?v=7xTGNNLPyMI", external: true },
+    { label: "Optional stretch — Karpathy: Let's build GPT", href: "https://www.classcentral.com/course/youtube-let-s-build-gpt-from-scratch-in-code-spelled-out-127034", external: true },
+  ],
+  // Week 5 — talking to models + cost. Academy (from Wk 4) continues here;
+  // these add prompt practice and runnable references.
+  "Talking to models": [
+    { label: "How the Transformer works (diagram)", href: "/tracker/transformer" },
+    { label: "DeepLearning.AI — Prompt Engineering for Devs (free, ~1.5h)", href: "https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers", external: true },
+    { label: "Anthropic Cookbook — runnable notebooks", href: "https://github.com/anthropics/anthropic-cookbook", external: true },
+  ],
   MCP: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
   "MCP advanced": [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
 };
@@ -180,7 +199,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 1: LLM fundamentals",
     focus: "Fundamentals, fast",
     tasks:
-      "Skip the long theory course — it's abstract and front-loads maths you don't need for applied work. Get transformer/attention intuition fast from two hands-on sources instead: 3Blue1Brown's neural-network and attention videos, and Andrej Karpathy's 'Let's build GPT from scratch' (you code a tiny model, so the ideas stop being abstract). A few evenings, not weeks. Then start building the same week — make your first real Claude/OpenAI API calls from Python. The rule for this whole phase is build-first: reach for theory only when a build makes you need it.",
+      "Skip the long, paid theory course — get transformer/attention intuition fast from free, hands-on sources, then build the same week. Watch 3Blue1Brown's two transformer chapters back-to-back (Ch 5 then Ch 6, ~1 hr total) and Karpathy's 'Deep Dive into LLMs like ChatGPT' for the full picture across the week; his 'Let's build GPT from scratch' is an optional stretch, not on the critical path. Then start the free Anthropic Academy 'Building with the Claude API' course and make your first real Claude API calls from Python — that first script is the seed of your flagship RAG app, not a throwaway. The rule for this whole phase is build-first: reach for theory only when a build makes you need it. (Resources are linked below in the order to do them.)",
     milestone: "Intuition down; building started",
     targetHrs: 10,
   },

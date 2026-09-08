@@ -121,16 +121,30 @@ export default function FullPlanPage() {
                       )}
                       {weekResources(w).length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
-                          {weekResources(w).map((r) => (
-                            <Link
-                              key={r.href}
-                              href={r.href}
-                              className="inline-flex items-center gap-1.5 rounded-md border border-brand-blue/40 bg-brand-blue/5 px-2.5 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/10 dark:border-brand-blue/50"
-                            >
-                              <span aria-hidden>📄</span>
-                              {r.label}
-                            </Link>
-                          ))}
+                          {weekResources(w).map((r) =>
+                            r.external ? (
+                              <a
+                                key={r.href}
+                                href={r.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-brand-blue/40 bg-brand-blue/5 px-2.5 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/10 dark:border-brand-blue/50"
+                              >
+                                <span aria-hidden>🔗</span>
+                                {r.label}
+                                <span aria-hidden>↗</span>
+                              </a>
+                            ) : (
+                              <Link
+                                key={r.href}
+                                href={r.href}
+                                className="inline-flex items-center gap-1.5 rounded-md border border-brand-blue/40 bg-brand-blue/5 px-2.5 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/10 dark:border-brand-blue/50"
+                              >
+                                <span aria-hidden>📄</span>
+                                {r.label}
+                              </Link>
+                            )
+                          )}
                         </div>
                       )}
                     </div>
