@@ -26,6 +26,9 @@ export interface WeekResource {
 // strings are stable across both, and are unique per track, so a pin only ever
 // matches the week it was written for.
 const RESOURCES_BY_FOCUS: Record<string, WeekResource[]> = {
+  "Get set up + first efficiency win": [
+    { label: "Concept coverage checklist (the map)", href: "/tracker/coverage" },
+  ],
   "Python fluency": [{ label: "Python ↔ Kotlin/Java idioms cheat sheet", href: "/tracker/idioms" }],
   "Talking to models": [{ label: "How the Transformer works (diagram)", href: "/tracker/transformer" }],
   MCP: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],

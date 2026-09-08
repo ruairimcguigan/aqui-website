@@ -34,5 +34,6 @@ export const config = {
     "/api/questions/:path*",
     "/api/config/:path*",
     "/api/coach/:path*",
+    "/api/coverage/:path*",
   ],
 };
