@@ -167,7 +167,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 0: Python (skip if fluent)",
     focus: "Python fluency",
     tasks:
-      "Close any Python gaps: comprehensions, type hints, virtual environments, the requests library, and async/await. Coming from Swift/Kotlin, focus on Pythonic idioms rather than raw syntax. If you're already comfortable, skip this week entirely and bank the 10 hours as buffer — or pull Week 4 forward.",
+      "Close any Python gaps: comprehensions, type hints, virtual environments (uv), the requests/httpx library, and async/await. Coming from Kotlin/Swift, focus on Pythonic idioms rather than raw syntax — the idioms cheat sheet linked below is your fast path. Because Python is genuinely newer to you, treat this week as mandatory rather than optional: get properly comfortable now, and know you'll keep hardening it by immersion every week from here.",
     milestone: "Comfortable writing Python",
     targetHrs: 10,
   },
@@ -265,7 +265,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 2: RAG",
     focus: "Interface",
     tasks:
-      "Give it a real interface with Streamlit: document upload, a chat window, streaming responses, and visible source citations. Keep it simple but presentable — this is the version people will actually click through in your portfolio, so first impressions count.",
+      "Give it a real interface with Streamlit: document upload, a chat window, streaming responses, and visible source citations — the version people will actually click through in your portfolio. Then containerise it: write a Dockerfile, run the app in a container locally, and get comfortable with images, ports and env vars. Docker is new to you and a core AI-engineering expectation, so learn it here on an app you already understand — not cold at deploy time in Week 26.",
     milestone: "🎯 M4: working UI / demo",
     targetHrs: 10,
   },
@@ -285,7 +285,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 3: Agents",
     focus: "Tool use",
     tasks:
-      "Begin the agents module of the Specialization. From here your paid spine is the Udacity 'AI Engineering with Claude' Nanodegree — each of its four courses is mapped to the weeks where its theme fits your build (see the milestones). Start Course 1 (Harness Engineering): choose Claude 4.5 models (Haiku/Sonnet/Opus) via the API by intelligence, speed and cost; learn agentic system design (perceive–reason–act); the Claude Agent SDK; and building production agents driven by stop-reason loops. Build the course's 'claims intake agent' across its cumulative exercises.",
+      "Begin the agents module of the Specialization. From here your paid spine is the Udacity 'AI Engineering with Claude' Nanodegree — each of its four courses is mapped to the weeks where its theme fits your build (see the milestones). Start Course 1 (Harness Engineering): choose Claude 4.5 models (Haiku/Sonnet/Opus) via the API by intelligence, speed and cost; learn agentic system design (perceive–reason–act); the Claude Agent SDK; and building production agents driven by stop-reason loops. Build the course's 'claims intake agent' across its cumulative exercises. (Note: Claude is available through the cloud providers too — Amazon Bedrock and Google Vertex — not just the direct API; you'll deploy against Bedrock in Week 26.)",
     milestone: "🎯 Claims intake agent (ND Course 1)",
     targetHrs: 10,
   },
@@ -365,7 +365,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 4: Production",
     focus: "Evaluation (the money skill)",
     tasks:
-      "The most valuable skill in the whole plan: build an evaluation set for your RAG app and measure retrieval hit-rate and answer quality objectively; establish a baseline you can improve against. Do the Nanodegree's Course 3 (Agent Evaluation & Observability): enforce structured outputs with Zod schemas in the Claude Agent SDK, and build automated evaluation frameworks using agent traces, evaluators, test cases, and schema validation.",
+      "The most valuable skill in the whole plan: build an evaluation set for your RAG app and measure retrieval hit-rate and answer quality objectively; establish a baseline you can improve against. Do the Nanodegree's Course 3 (Agent Evaluation & Observability): enforce structured outputs with Zod schemas in the Claude Agent SDK, and build automated evaluation frameworks using agent traces, evaluators, test cases, and schema validation. Then wire it into CI: a GitHub Actions workflow that runs ruff, pyright, your tests and the eval suite as a gate on every push. This is CI/CD applied to ML — a short step from the release pipelines you already run for mobile/web, so lean on that experience and claim it as transferable.",
     milestone: "🎯 M5: eval suite + baseline numbers",
     targetHrs: 10,
   },
@@ -394,7 +394,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 4: Production",
     focus: "Deploy",
     tasks:
-      "Dockerise the flagship and deploy it to a public URL (Railway, Render, or Fly.io). A live, deployed project a hiring manager can click is worth far more than a repo they'd have to clone and run themselves. Make sure the demo works from a cold start.",
+      "Take the container you built in Week 13 and deploy the flagship for real — twice. First the quick path (Railway, Render or Fly.io) so you have a public URL fast. Then to a real cloud: deploy the container to AWS (App Runner or ECS) with model calls routed through Amazon Bedrock, which hosts Claude. Enterprise job specs name AWS/Azure explicitly, so an actual cloud deployment on your CV closes that gap head-on. Make sure the demo works from a cold start.",
     milestone: "🎯 M6: deployed, live URL",
     targetHrs: 10,
   },
