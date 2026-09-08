@@ -50,6 +50,14 @@ const RESOURCES_BY_FOCUS: Record<string, WeekResource[]> = {
     { label: "DeepLearning.AI — Prompt Engineering for Devs (free, ~1.5h)", href: "https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers", external: true },
     { label: "Anthropic Cookbook — runnable notebooks", href: "https://github.com/anthropics/anthropic-cookbook", external: true },
   ],
+  // Week 6 — prompting + structured output + tool calling. Ordered; the last
+  // two map onto the JSON-output and tool-call rungs of the ask.py ladder.
+  "Prompt & context engineering": [
+    { label: "1 · Prompt Engineering Interactive Tutorial (Anthropic)", href: "https://github.com/anthropics/prompt-eng-interactive-tutorial", external: true },
+    { label: "2 · Anthropic Academy — Claude API (tool use + JSON)", href: "https://anthropic.skilljar.com/claude-with-the-anthropic-api", external: true },
+    { label: "3 · Structured outputs — Claude docs", href: "https://platform.claude.com/docs/en/build-with-claude/structured-outputs", external: true },
+    { label: "Anthropic Cookbook — tool-use notebooks", href: "https://github.com/anthropics/anthropic-cookbook", external: true },
+  ],
   MCP: [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
   "MCP advanced": [{ label: "kmp-ui-automator — build plan", href: "/tracker/kmp-ui-automator" }],
 };
@@ -248,7 +256,7 @@ export const PLAN: PlanWeek[] = [
     phase: "Phase 2: RAG",
     focus: "Retrieval foundations",
     tasks:
-      "Start the RAG portion of the Specialization. Understand embeddings (turning text into vectors), semantic similarity, and why RAG exists at all — grounding a model in your own data instead of relying on its training. Read one solid end-to-end RAG explainer before you write any code.",
+      "Start the RAG phase. Understand embeddings (turning text into vectors), semantic similarity, and why RAG exists at all — grounding a model in your own data instead of relying on its training. Read one solid end-to-end RAG explainer, then get straight into building: you already hit the naïve-RAG wall in your first script, and this is where you fix it properly with real ingestion and retrieval.",
     targetHrs: 10,
   },
   {
