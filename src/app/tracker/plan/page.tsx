@@ -58,8 +58,10 @@ export default function FullPlanPage() {
               The two curriculum spines
             </h2>
             <p>
-              <strong>Front half (Weeks 4–14):</strong> the DeepLearning.AI &ldquo;AI Engineer Specialization&rdquo;
-              for LLM fundamentals and RAG, supplemented by free Anthropic Academy courses.
+              <strong>Front half (Weeks 4–14):</strong> build-first, not theory-first. Get transformer/attention
+              intuition fast from 3Blue1Brown and Karpathy&apos;s &ldquo;build GPT&rdquo;, then learn by building — the
+              free Anthropic Academy courses and the flagship RAG app carry the applied work. Audit DeepLearning.AI&apos;s
+              &ldquo;Generative AI with LLMs&rdquo; videos for the concepts if you want them, but skip the paid quizzes.
             </p>
             <p>
               <strong>Back half (Weeks 15–24):</strong> the Udacity &ldquo;AI Engineering with Claude&rdquo;
@@ -78,6 +80,11 @@ export default function FullPlanPage() {
               <strong> Multi-Surface Monorepo</strong> Claude Code config, the <strong>Evaluation &amp; Observability</strong>{" "}
               systems, and — the standout for Claude-Code-specialist roles — the{" "}
               <strong>enterprise code-review orchestrator</strong>.
+            </p>
+            <p>
+              Plus your own headline build — <strong>kmp-ui-automator</strong>, an MCP server that drives Android and
+              iOS from a single agent and reports cross-platform UI divergences. It&apos;s the differentiated,
+              mobile-native piece most AI engineers can&apos;t build, and it doubles as your Claude-Code-specialist proof.
             </p>
             <p>
               Evaluation is emphasised throughout as the single most hireable skill. Buffer weeks let a slip absorb
