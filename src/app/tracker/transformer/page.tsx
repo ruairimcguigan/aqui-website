@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Container from "@/app/_components/container";
+import StudyBreadcrumb from "@/app/_components/study-breadcrumb";
 
 // A plain-English, labelled reference for how a Transformer turns text into a
 // next-token prediction — with the real maths tucked into a collapsible
@@ -29,11 +29,7 @@ export default function TransformerPage() {
     <main className="pb-24">
       <Container>
         <div className="mx-auto max-w-3xl">
-          <div className="pt-12">
-            <Link href="/tracker" className="text-sm font-medium text-brand-blue hover:underline">
-              ← Back to tracker
-            </Link>
-          </div>
+          <StudyBreadcrumb title="How a Transformer works" />
 
           <h1 className="mt-4 text-4xl font-bold tracking-tighter md:text-5xl">How a Transformer works</h1>
           <p className="mt-3 max-w-2xl text-slate-500 dark:text-slate-400">

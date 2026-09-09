@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Container from "@/app/_components/container";
+import StudyBreadcrumb from "@/app/_components/study-breadcrumb";
 
 // Python ↔ Kotlin/Java idiom reference. Gated under /tracker by middleware.
 // Content is data-driven so code snippets live in plain strings (no JSX-brace
@@ -452,11 +452,7 @@ export default function IdiomsPage() {
     <main className="pb-24">
       <Container>
         <div className="mx-auto max-w-4xl">
-          <div className="pt-12">
-            <Link href="/tracker" className="text-sm font-medium text-brand-blue hover:underline">
-              ← Back to tracker
-            </Link>
-          </div>
+          <StudyBreadcrumb title="Python for a Kotlin engineer" />
 
           <h1 className="mt-4 text-4xl font-bold tracking-tighter md:text-5xl">Python for a Kotlin engineer</h1>
           <p className="mt-3 max-w-2xl text-slate-500 dark:text-slate-400">

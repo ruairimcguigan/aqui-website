@@ -232,6 +232,9 @@ export default function TrackerPage() {
                 <Link href="/tracker/plan" className="hover:underline">
                   Read the full plan →
                 </Link>
+                <Link href="/tracker/reference" className="hover:underline">
+                  Reference library →
+                </Link>
                 <Link href="/tracker/notes" className="hover:underline">
                   Notes →
                 </Link>

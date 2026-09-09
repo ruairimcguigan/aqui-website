@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import Container from "@/app/_components/container";
+import StudyBreadcrumb from "@/app/_components/study-breadcrumb";
 
 // Concept coverage checklist — the "map" that turns unknown-unknowns into
 // known-unknowns. Gated under /tracker. Ticks persist server-side via
@@ -195,11 +195,7 @@ export default function CoveragePage() {
     <main className="pb-24">
       <Container>
         <div className="mx-auto max-w-3xl">
-          <div className="pt-12">
-            <Link href="/tracker" className="text-sm font-medium text-brand-blue hover:underline">
-              ← Back to tracker
-            </Link>
-          </div>
+          <StudyBreadcrumb title="Concept coverage checklist" />
 
           <h1 className="mt-4 text-4xl font-bold tracking-tighter md:text-5xl">Concept coverage checklist</h1>
           <p className="mt-3 max-w-2xl text-slate-500 dark:text-slate-400">

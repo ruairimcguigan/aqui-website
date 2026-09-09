@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Container from "@/app/_components/container";
+import StudyBreadcrumb from "@/app/_components/study-breadcrumb";
 
 // Build plan for kmp-ui-automator — the Week 17 MCP milestone project.
 // Gated under /tracker by middleware. Content is data-driven so code snippets
@@ -253,11 +253,7 @@ export default function KmpUiAutomatorPage() {
     <main className="pb-24">
       <Container>
         <div className="mx-auto max-w-4xl">
-          <div className="pt-12">
-            <Link href="/tracker" className="text-sm font-medium text-brand-blue hover:underline">
-              ← Back to tracker
-            </Link>
-          </div>
+          <StudyBreadcrumb title="kmp-ui-automator" />
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <h1 className="text-4xl font-bold tracking-tighter md:text-5xl">kmp-ui-automator</h1>
